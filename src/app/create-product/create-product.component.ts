@@ -24,9 +24,11 @@ export class CreateProductComponent {
 
 
   currentCatlog: any = {
+    productImage: '',
     productImageUrl: '',
     productDescription: '',
     productStatus: 'Active',
+    focusProductId: null,
     price: ''
   };
 
@@ -40,6 +42,10 @@ export class CreateProductComponent {
 
   currentUser: any = {};
 
+  focusProducts: any[] = [];
+  focusEntities: any[] = [];
+
+
   constructor(
     private apiRequestService: ApiRequestService,
     public apiUrls: ApiUrlsService,
@@ -52,7 +58,17 @@ export class CreateProductComponent {
 
   ngOnInit() {
     this.getAllStatesZonesAndDistricts();
+    this.loadFocusDropdowns();
   }
+
+  loadFocusDropdowns() {
+  this.apiRequestService.getFocusProducts().subscribe(res => {
+    this.focusProducts = (res.data || []).filter(
+      (x: any) => x.iMasterId && x.sName
+    );
+  });
+}
+
 
   getAllStatesZonesAndDistricts() {
     Promise.all([
@@ -86,15 +102,15 @@ export class CreateProductComponent {
   addPrice() {
     this.priceList.push({ volume: '', entries: [{ selectedKey: 'All', price: 1000 }] });
   }
-  
 
- addEntryToVolume(volumeIndex: number) {
-  this.priceList[volumeIndex].entries.push({ selectedKey: 'All', price: 0 });
-}
 
-removeEntryFromVolume(volumeIndex: number, entryIndex: number) {
-  this.priceList[volumeIndex].entries.splice(entryIndex, 1);
-}
+  addEntryToVolume(volumeIndex: number) {
+    this.priceList[volumeIndex].entries.push({ selectedKey: 'All', price: 0 });
+  }
+
+  removeEntryFromVolume(volumeIndex: number, entryIndex: number) {
+    this.priceList[volumeIndex].entries.splice(entryIndex, 1);
+  }
 
 
   handleImageChange(event: any) {
@@ -107,8 +123,6 @@ removeEntryFromVolume(volumeIndex: number, entryIndex: number) {
       reader.readAsDataURL(file);
     }
   }
-
-
 
 
   generatePricePayload() {
@@ -125,9 +139,9 @@ removeEntryFromVolume(volumeIndex: number, entryIndex: number) {
   validateForm(): boolean {
     this.errorArray = [];
 
-    if (!this.currentCatlog.productDescription) {
-      this.errorArray.push('Product description is required.');
-    }
+ if (!this.currentCatlog.focusProductId) {
+    this.errorArray.push('Product name is required.');
+  }
 
     if (!this.currentCatlog.productImage && !this.currentCatlog.productImageUrl) {
       this.errorArray.push('Product image is required.');
@@ -175,6 +189,8 @@ removeEntryFromVolume(volumeIndex: number, entryIndex: number) {
     formData.append('productDescription', this.currentCatlog.productDescription);
     formData.append('productStatus', this.currentCatlog.productStatus);
     formData.append('price', JSON.stringify(this.currentCatlog.price));
+    formData.append('focusProductId', this.currentCatlog.focusProductId);
+
 
     this.apiRequestService
       .createWithImage(this.apiUrls.createProductCatlog, formData)
@@ -184,20 +200,20 @@ removeEntryFromVolume(volumeIndex: number, entryIndex: number) {
           this.resetForm();
         },
         (error) => {
-                console.error('Error creating product catalog:', error);
-                this.currentCatlog.productDescription = oldDate;
-                this.errorArray = [];
-                if (error && error.message) {
-                  this.errorArray.push(error.message);
-                } else {
-                  this.errorArray.push(error);
-                }
-              });
+          console.error('Error creating product catalog:', error);
+          this.currentCatlog.productDescription = oldDate;
+          this.errorArray = [];
+          if (error && error.message) {
+            this.errorArray.push(error.message);
+          } else {
+            this.errorArray.push(error);
+          }
+        });
   }
 
   resetForm() {
     this.currentCatlog = {
-       productImage: '',
+      productImage: '',
       productImageUrl: '',
       productDescription: '',
       productStatus: 'Active',
@@ -210,15 +226,23 @@ removeEntryFromVolume(volumeIndex: number, entryIndex: number) {
       this.productCatlogForm.resetForm();
     }
     if (this.fileInput) {
-    this.fileInput.nativeElement.value = ''; 
-  }
+      this.fileInput.nativeElement.value = '';
+    }
   }
 
-toggleStatus(event: any) {
-  this.currentCatlog.productStatus = event.target.checked ? 'Active' : 'Inactive';
+  toggleStatus(event: any) {
+    this.currentCatlog.productStatus = event.target.checked ? 'Active' : 'Inactive';
+  }
+
+  cancel() {
+    this.router.navigate(['/product-catalog']);
+  }
+
+  onProductChange(productId: number) {
+  const selectedProduct = this.focusProducts.find(
+    p => p.iMasterId === productId
+  );
+  this.currentCatlog.productDescription = selectedProduct?.sName || '';
 }
 
-cancel() {
-  this.router.navigate(['/product-catalog']);
-}
 }

@@ -415,6 +415,19 @@ getCashFreeBalance() {
   );
 }
 
+
+getFocusProducts(): Observable<any> {
+  return this.http
+    .get(this.ApiUrls.mainUrl + this.ApiUrls.getFocusProducts)
+    .pipe(map((res: any) => res));
+}
+
+getFocusEntities(): Observable<any> {
+  return this.http
+    .get(this.ApiUrls.mainUrl + this.ApiUrls.getFocusEntities)
+    .pipe(map((res: any) => res));
+}
+
       
 }   
 

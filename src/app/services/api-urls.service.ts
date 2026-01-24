@@ -113,6 +113,10 @@ searchProductCatlog = 'productCatlog/search';
 updateProductCatlog = 'productCatlog/update/'; 
 deleteProductCatlog = 'productCatlog/delete/'; 
 
+// Focus Product / Unit APIs
+getFocusProducts = 'products/focus-products';
+getFocusEntities = 'products/focus-entities';
+
 //order
 checkoutUrl = 'order/create';
 getAllOrders = '/order/orders';

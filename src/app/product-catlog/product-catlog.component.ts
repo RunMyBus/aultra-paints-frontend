@@ -53,7 +53,7 @@ export class ProductCatlogComponent {
     timestamp: number = new Date().getTime();
     submitted = false;
     groupedDropdownData: any[] = [];
-   cart: { [id: string]: { count: number, price: number, volume: string } } = {};
+   cart: { [id: string]: { count: number, price: number, volume: string , productId: string; } } = {};
     stateList: Array<{ stateName: string; stateId: string }> = [];
     zoneList: Array<{ zoneName: string; zoneId: string }> = [];
     districtList: Array<{ districtName: string; districtId: string }> = [];
@@ -68,6 +68,8 @@ priceList: Array<{ volume: string, entries: Array<{ selectedKey: string, price: 
   { volume: '10 L', entries: [{ selectedKey: 'All', price: 0 }] }
 ];
  
+focusEntities: any[] = [];
+selectedEntityId: number | null = null;
 
   
     constructor(private apiRequestService: ApiRequestService, private modalService: NgbModal, public apiUrls: ApiUrlsService, private datePipe: DatePipe,private AuthService:AuthService, private router: Router ) {    this.currentUser = this.AuthService.currentUserValue;
@@ -76,8 +78,15 @@ priceList: Array<{ volume: string, entries: Array<{ selectedKey: string, price: 
     ngOnInit(): void {
       this.loadProductCatlogs();
       this.getAllStatesZonesAndDistricts();
+       this.loadFocusEntities();
     }
   
+    loadFocusEntities() {
+  this.apiRequestService.getFocusEntities().subscribe(res => {
+    this.focusEntities = res.data || [];
+  });
+}
+
     loadProductCatlogs() {
       this.productCatlogs = [];
       this.apiRequestService.create(this.apiUrls.searchProductCatlog, this.productCatlogsQuery).subscribe((response: any) => {
@@ -194,7 +203,8 @@ confirmAddToCart() {
     this.cart[id] = {
       count: 1,
       price: this.selectedPrice,
-      volume
+      volume,
+      productId: baseId 
     };
   } else {
     this.cart[id].count += 1;
@@ -224,7 +234,8 @@ updateCart(product: any, volume: string, change: number) {
     this.cart[id] = {
       count: 0,
       price: product.productPrices?.find((p: any) => p.volume === volume)?.price || 0,
-      volume
+      volume,
+       productId: product._id 
     };
   }
 
@@ -389,12 +400,14 @@ updateCart(product: any, volume: string, change: number) {
 
     proceedToCheckout() {
       const items = Object.keys(this.cart).map(id => {
+         const cartItem = this.cart[id]; 
         const product = this.getProductById(id);
         const count = this.cart[id].count;
         const price = this.cart[id].price;
     
         return {
-          _id: id,
+          _id: cartItem.productId,          
+         volume: cartItem.volume,
           productOfferDescription: product?.productOfferDescription || product?.productDescription || '',
           productPrice: price,
           quantity: count,
@@ -405,6 +418,7 @@ updateCart(product: any, volume: string, change: number) {
       const totalPrice = items.reduce((sum, item) => sum + item.subtotal, 0);
     
       const orderPayload = {
+        entityId: this.selectedEntityId,
         items,
         totalPrice
       };

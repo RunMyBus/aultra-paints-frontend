@@ -9,16 +9,14 @@
         <!-- Product Description and Toggle -->
         <div class="row mb-4">
           <div class="col-md-8">
-            <label for="productDescription" class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
-            <input
-              id="productDescription"
-              name="productDescription"
-              class="form-control form-control-lg shadow-sm"
-              placeholder="Enter Product Name"
-              [(ngModel)]="currentCatlog.productDescription"
-              required
-            />
-            <div *ngIf="submitted && !currentCatlog.productDescription" class="text-danger mt-1 small fst-italic">
+            <label for="productDescription" class="form-label fw-semibold">Product Name <span
+                class="text-danger">*</span></label>
+            <ng-select [items]="focusProducts" bindLabel="sName" bindValue="iMasterId"
+              [(ngModel)]="currentCatlog.focusProductId" name="focusProductId" placeholder="Select Product Name"
+              [searchable]="true" [clearable]="true" required (ngModelChange)="onProductChange($event)">
+            </ng-select>
+
+            <div *ngIf="submitted && !currentCatlog.focusProductId" class="text-danger mt-1 small fst-italic">
               Product Name is required.
             </div>
           </div>
@@ -26,15 +24,9 @@
           <div class="col-md-4 d-flex flex-column align-items-start mt-3 mt-md-0">
             <label class="fw-semibold mb-2" for="productStatus">Status <span class="text-danger">*</span></label>
             <div class="form-check form-switch form-switch-lg">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="productStatus"
-                [(ngModel)]="currentCatlog.productStatus"
-                [ngModelOptions]="{standalone: true}"
-                [checked]="currentCatlog.productStatus === 'Active'"
-                (change)="toggleStatus($event)"
-              />
+              <input class="form-check-input" type="checkbox" id="productStatus"
+                [(ngModel)]="currentCatlog.productStatus" [ngModelOptions]="{standalone: true}"
+                [checked]="currentCatlog.productStatus === 'Active'" (change)="toggleStatus($event)" />
               <label class="form-check-label" for="productStatus"></label>
             </div>
           </div>
@@ -42,24 +34,16 @@
 
         <!-- Product Image -->
         <div class="mb-4">
-          <label for="productImage" class="form-label fw-semibold">Product Image <span class="text-danger">*</span></label>
-          <input
-            type="file"
-            id="productImage"
-              #fileInput
-            class="form-control form-control-lg shadow-sm"
-            (change)="handleImageChange($event)"
-            accept="image/*"
-          />
+          <label for="productImage" class="form-label fw-semibold">Product Image <span
+              class="text-danger">*</span></label>
+          <input type="file" id="productImage" #fileInput class="form-control form-control-lg shadow-sm"
+            (change)="handleImageChange($event)" accept="image/*" />
           <div *ngIf="currentCatlog.productImage || currentCatlog.productImageUrl" class="mt-3">
-            <img
-              [src]="currentCatlog.productImage || currentCatlog.productImageUrl"
-              alt="Product Image"
-              class="img-thumbnail shadow-sm"
-              style="max-width: 150px; max-height: 150px; border-radius: 8px;"
-            />
+            <img [src]="currentCatlog.productImage || currentCatlog.productImageUrl" alt="Product Image"
+              class="img-thumbnail shadow-sm" style="max-width: 150px; max-height: 150px; border-radius: 8px;" />
           </div>
-          <div *ngIf="submitted && !currentCatlog.productImage && !currentCatlog.productImageUrl" class="text-danger mt-1 small fst-italic">
+          <div *ngIf="submitted && !currentCatlog.productImage && !currentCatlog.productImageUrl"
+            class="text-danger mt-1 small fst-italic">
             Product image is required.
           </div>
         </div>
@@ -67,17 +51,12 @@
         <!-- Price Groups -->
         <div *ngFor="let priceGroup of priceList; let i = index" class="mb-4 p-4 border rounded shadow-sm bg-light">
           <div class="d-flex justify-content-between align-items-center mb-2">
-          <!-- Volume as Dropdown -->
-          <div class="mb-3" style="width: 200px;">
-            <label class="form-label fw-semibold">Volume</label>
-            <select
-              class="form-select"
-              [(ngModel)]="priceList[i].volume"
-              name="volume_{{i}}"
-              required
-            >
-              <option value="" disabled>Select Volume</option>
-                 <option value="500ml">500ml</option>
+            <!-- Volume as Dropdown -->
+            <div class="mb-3" style="width: 200px;">
+              <label class="form-label fw-semibold">Volume</label>
+              <select class="form-select" [(ngModel)]="priceList[i].volume" name="volume_{{i}}" required>
+                <option value="" disabled>Select Volume</option>
+                <option value="500ml">500ml</option>
                 <option value="1L">1L</option>
                 <option value="4l">4L</option>
                 <option value="10L">10L</option>
@@ -87,62 +66,42 @@
                 <option value="30L">30L</option>
                 <option value="35L">35L</option>
                 <option value="40L">40L</option>
-            
+
                 <!-- Weight Options -->
-                  <option value="1KG">1 KG</option>
-                  <option value="2KG">2 KG</option>
-                  <option value="5KG">5 KG</option>
-                  <option value="10KG">10 KG</option>
-                  <option value="20KG">20 KG</option>
-                   <option value="40KG">40 KG</option>
-            </select>
-          </div>
-             <button class="btn btn-sm btn-outline-danger" type="button" (click)="priceList.splice(i, 1)">−</button>
+                <option value="1KG">1 KG</option>
+                <option value="2KG">2 KG</option>
+                <option value="5KG">5 KG</option>
+                <option value="10KG">10 KG</option>
+                <option value="20KG">20 KG</option>
+                <option value="40KG">40 KG</option>
+              </select>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" type="button" (click)="priceList.splice(i, 1)">−</button>
           </div>
 
           <!-- Entries -->
           <div *ngFor="let entry of priceGroup.entries; let j = index" class="row align-items-end g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label">Place</label>
-               <ng-select [items]="groupedDropdownData"
-                 bindLabel="label"
-                 bindValue="id"
-                 groupBy="group"
-                 [(ngModel)]="entry.selectedKey"
-                 name="entry_selectedKey_{{ i }}_{{ j }}"
-                 placeholder="Select State/Zone/District"
-                 [clearable]="false"
-                 [searchable]="true"
-                 [dropdownPosition]="'auto'">
-      </ng-select>
+              <ng-select [items]="groupedDropdownData" bindLabel="label" bindValue="id" groupBy="group"
+                [(ngModel)]="entry.selectedKey" name="entry_selectedKey_{{ i }}_{{ j }}"
+                placeholder="Select State/Zone/District" [clearable]="false" [searchable]="true"
+                [dropdownPosition]="'auto'">
+              </ng-select>
             </div>
             <div class="col-md-4">
               <label class="form-label">Price</label>
-              <input
-                type="number"
-                class="form-control"
-                [(ngModel)]="priceList[i].entries[j].price"
-                name="price{{i}}{{j}}"
-                placeholder="Enter price"
-                required
-              />
+              <input type="number" class="form-control" [(ngModel)]="priceList[i].entries[j].price"
+                name="price{{i}}{{j}}" placeholder="Enter price" required />
             </div>
             <div class="col-md-2 d-flex gap-2">
               <!-- Add entry only on last row -->
-              <button
-                *ngIf="j === priceGroup.entries.length - 1"
-                type="button"
-                class="btn btn-outline-primary w-50"
-                (click)="addEntryToVolume(i)"
-              >+</button>
+              <button *ngIf="j === priceGroup.entries.length - 1" type="button" class="btn btn-outline-primary w-50"
+                (click)="addEntryToVolume(i)">+</button>
 
               <!-- Remove entry if more than 1 -->
-              <button
-                type="button"
-                class="btn btn-outline-danger w-50"
-                (click)="removeEntryFromVolume(i, j)"
-                [disabled]="priceGroup.entries.length === 1"
-              >−</button>
+              <button type="button" class="btn btn-outline-danger w-50" (click)="removeEntryFromVolume(i, j)"
+                [disabled]="priceGroup.entries.length === 1">−</button>
             </div>
           </div>
         </div>

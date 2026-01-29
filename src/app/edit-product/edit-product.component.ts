@@ -16,15 +16,17 @@ import { NgSelectModule } from '@ng-select/ng-select';
   styleUrl: './edit-product.component.css'
 })
 export class EditProductComponent {
-   @ViewChild('productCatlogForm') productCatlogForm!: NgForm;
+  @ViewChild('productCatlogForm') productCatlogForm!: NgForm;
 
   currentCatlog: any = {
     productOfferDescription: '',
     productOfferStatus: 'Active',
+    focusProductId: null,
     price: {},
     productOfferImageUrl: '',
     productOfferImage: null,
-    _id: ''
+    _id: '',
+
   };
 
   priceList: Array<{ volume: string; entries: Array<{ selectedKey: string; price: number }> }> = [];
@@ -32,6 +34,8 @@ export class EditProductComponent {
   submitted = false;
 
   groupedDropdownData: Array<{ id: string; label: string; group?: string }> = [];
+  focusProducts: any[] = [];
+
 
   constructor(
     private route: ActivatedRoute,
@@ -47,7 +51,11 @@ export class EditProductComponent {
       return;
     }
 
-    this.currentCatlog = { ...navState['catlog'] };
+    this.currentCatlog = {
+      ...this.currentCatlog,
+      ...navState['catlog']
+    };
+
 
     // Convert price object to priceList for form editing
     if (this.currentCatlog.price && typeof this.currentCatlog.price === 'object') {
@@ -60,9 +68,39 @@ export class EditProductComponent {
       // fallback init
       this.priceList.push({ volume: '', entries: [{ selectedKey: 'All', price: 0 }] });
     }
-     this.initPriceList();
+    this.initPriceList();
     this.loadGroupedDropdownData();
+    this.loadFocusProducts();
   }
+
+  loadFocusProducts() {
+    this.apiRequestService.getFocusProducts().subscribe(res => {
+      this.focusProducts = (res.data || []).filter(
+        (x: any) => x.iMasterId && x.sName
+      );
+
+      this.setSelectedProduct();
+    });
+  }
+
+  setSelectedProduct() {
+    const match = this.focusProducts.find(
+      p => p.sName === this.currentCatlog.productOfferDescription
+    );
+
+    if (match) {
+      this.currentCatlog.focusProductId = match.iMasterId;
+    }
+  }
+
+  onProductChange(productId: number) {
+    const product = this.focusProducts.find(
+      p => p.iMasterId === productId
+    );
+
+    this.currentCatlog.productOfferDescription = product?.sName || '';
+  }
+
 
   loadGroupedDropdownData() {
     Promise.all([
@@ -95,27 +133,27 @@ export class EditProductComponent {
       });
   }
 
- initPriceList() {
-  const grouped: { [volume: string]: { volume: string; entries: Array<{ selectedKey: string; price: number }> } } = {};
+  initPriceList() {
+    const grouped: { [volume: string]: { volume: string; entries: Array<{ selectedKey: string; price: number }> } } = {};
 
-  if (Array.isArray(this.currentCatlog.price)) {
-    this.currentCatlog.price.forEach((item: any) => {
-      const vol = item.volume || '';
-      if (!grouped[vol]) {
-        grouped[vol] = { volume: vol, entries: [] };
-      }
-      grouped[vol].entries.push({
-        selectedKey: item.refId || 'All',
-        price: item.price || 0,
+    if (Array.isArray(this.currentCatlog.price)) {
+      this.currentCatlog.price.forEach((item: any) => {
+        const vol = item.volume || '';
+        if (!grouped[vol]) {
+          grouped[vol] = { volume: vol, entries: [] };
+        }
+        grouped[vol].entries.push({
+          selectedKey: item.refId || 'All',
+          price: item.price || 0,
+        });
       });
-    });
 
-    this.priceList = Object.values(grouped);
-  } else {
-    // fallback empty price list
-    this.priceList = [{ volume: '', entries: [{ selectedKey: 'All', price: 0 }] }];
+      this.priceList = Object.values(grouped);
+    } else {
+      // fallback empty price list
+      this.priceList = [{ volume: '', entries: [{ selectedKey: 'All', price: 0 }] }];
+    }
   }
-}
 
 
   addPrice() {
@@ -165,9 +203,10 @@ export class EditProductComponent {
   validateForm(): boolean {
     this.errorArray = [];
 
-    if (!this.currentCatlog.productOfferDescription) {
-      this.errorArray.push('Product description is required.');
+    if (!this.currentCatlog.focusProductId) {
+      this.errorArray.push('Product name is required.');
     }
+
     if (!this.currentCatlog.productOfferImage && !this.currentCatlog.productOfferImageUrl) {
       this.errorArray.push('Product image is required.');
     }
@@ -210,9 +249,9 @@ export class EditProductComponent {
     this.currentCatlog.price = this.generatePricePayload();
 
     if (this.productCatlogForm.valid) {
-        let oldDate = this.currentCatlog.productDescription;
-        this.currentCatlog.productDescription = `${this.currentCatlog.productDescription}`;
-        
+      let oldDate = this.currentCatlog.productDescription;
+      this.currentCatlog.productDescription = `${this.currentCatlog.productDescription}`;
+
       const formData = new FormData();
 
       if (this.currentCatlog.productOfferImage) {
@@ -223,6 +262,7 @@ export class EditProductComponent {
       formData.append('productDescription', this.currentCatlog.productOfferDescription);
       formData.append('productStatus', this.currentCatlog.productOfferStatus);
       formData.append('price', JSON.stringify(this.currentCatlog.price));
+      formData.append('focusProductId', this.currentCatlog.focusProductId);
 
       this.apiRequestService
         .updateWithImage(this.apiUrls.updateProductCatlog + this.currentCatlog._id, formData)
@@ -232,19 +272,19 @@ export class EditProductComponent {
             this.router.navigate(['/product-catalog']);
           },
           (error) => {
-                console.error('Error updating product catalog:', error);
-                this.errorArray = [];
-                this.currentCatlog.productDescription = oldDate;
-                if (error && error.message) {
-                  this.errorArray.push(error.message);
-                } else {
-                  this.errorArray.push(error);
-                }
-              });
+            console.error('Error updating product catalog:', error);
+            this.errorArray = [];
+            this.currentCatlog.productDescription = oldDate;
+            if (error && error.message) {
+              this.errorArray.push(error.message);
+            } else {
+              this.errorArray.push(error);
+            }
+          });
     }
   }
 
   cancel() {
-  this.router.navigate(['/product-catalog']);
-}
+    this.router.navigate(['/product-catalog']);
+  }
 }

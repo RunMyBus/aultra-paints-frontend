@@ -21,7 +21,7 @@ export class EditProductComponent {
   currentCatlog: any = {
     productOfferDescription: '',
     productOfferStatus: 'Active',
-    focusProductId: null,
+    focusProductId: [],
     price: {},
     productOfferImageUrl: '',
     productOfferImage: null,
@@ -73,33 +73,109 @@ export class EditProductComponent {
     this.loadFocusProducts();
   }
 
-  loadFocusProducts() {
-    this.apiRequestService.getFocusProducts().subscribe(res => {
+loadFocusProducts() {
+  this.apiRequestService.getFocusProducts().subscribe(
+    (res: any) => {
+
+      if (!res || res.success === false) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Focus API Error',
+          text: res?.message || 'Failed to fetch entities from Focus',
+          confirmButtonColor: '#d33',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+
       this.focusProducts = (res.data || []).filter(
         (x: any) => x.iMasterId && x.sName
       );
 
       this.setSelectedProduct();
-    });
+    },
+    (error: any) => {
+      console.error('Focus API Error:', error);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Focus API Error',
+        text: error?.error?.message || 'Failed to fetch entities from Focus',
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'OK'
+      });
+
+      this.focusProducts = [];
+    }
+  );
+}
+
+
+ setSelectedProduct() {
+
+  if (!Array.isArray(this.currentCatlog.focusProductMapping)) return;
+
+  const ids = this.currentCatlog.focusProductMapping.map(
+    (m: any) => m.focusProductId
+  );
+
+ this.currentCatlog.focusProductId = ids;
+}
+
+
+onProductChange(productIds: number[]) {
+
+  if (!productIds || productIds.length === 0) {
+    this.currentCatlog.productOfferDescription = '';
+    this.priceList = [];
+    return;
   }
 
-  setSelectedProduct() {
-    const match = this.focusProducts.find(
-      p => p.sName === this.currentCatlog.productOfferDescription
-    );
+  const selectedProducts = this.focusProducts.filter(p =>
+    productIds.includes(p.iMasterId)
+  );
+
+  let baseProductName = '';
+  const extractedVolumes: string[] = [];
+
+  selectedProducts.forEach(product => {
+
+    const fullName = product.sName.trim();
+    const volumeRegex = /(\d+\s?(LTRS?|LTR|ML|KG|L))/i;
+    const match = fullName.match(volumeRegex);
+
+    let cleanedName = fullName;
 
     if (match) {
-      this.currentCatlog.focusProductId = match.iMasterId;
+      const volume = match[0].replace(/\s/g, '').toUpperCase();
+      extractedVolumes.push(volume);
+      cleanedName = fullName.replace(match[0], '').trim();
     }
-  }
 
-  onProductChange(productId: number) {
-    const product = this.focusProducts.find(
-      p => p.iMasterId === productId
-    );
+    baseProductName = cleanedName;
+  });
 
-    this.currentCatlog.productOfferDescription = product?.sName || '';
-  }
+  this.currentCatlog.productOfferDescription = baseProductName;
+
+  
+  this.priceList = this.priceList.filter(v =>
+    extractedVolumes.includes(v.volume)
+  );
+
+
+  extractedVolumes.forEach(volume => {
+
+    const exists = this.priceList.find(v => v.volume === volume);
+
+    if (!exists) {
+      this.priceList.push({
+        volume: volume,
+        entries: [{ selectedKey: 'All', price: 1000 }] 
+      });
+    }
+  });
+}
+
 
 
   loadGroupedDropdownData() {
@@ -133,27 +209,36 @@ export class EditProductComponent {
       });
   }
 
-  initPriceList() {
-    const grouped: { [volume: string]: { volume: string; entries: Array<{ selectedKey: string; price: number }> } } = {};
+ initPriceList() {
 
-    if (Array.isArray(this.currentCatlog.price)) {
-      this.currentCatlog.price.forEach((item: any) => {
-        const vol = item.volume || '';
-        if (!grouped[vol]) {
-          grouped[vol] = { volume: vol, entries: [] };
-        }
-        grouped[vol].entries.push({
-          selectedKey: item.refId || 'All',
-          price: item.price || 0,
-        });
-      });
-
-      this.priceList = Object.values(grouped);
-    } else {
-      // fallback empty price list
-      this.priceList = [{ volume: '', entries: [{ selectedKey: 'All', price: 0 }] }];
-    }
+  if (!Array.isArray(this.currentCatlog.price) || this.currentCatlog.price.length === 0) {
+    this.priceList = [
+      { volume: '', entries: [{ selectedKey: 'All', price: 0 }] }
+    ];
+    return;
   }
+
+  const grouped: any = {};
+
+  this.currentCatlog.price.forEach((item: any) => {
+
+    if (!grouped[item.volume]) {
+      grouped[item.volume] = {
+        volume: item.volume,
+        entries: []
+      };
+    }
+
+    grouped[item.volume].entries.push({
+      selectedKey: item.refId || 'All',
+      price: item.price || 0
+    });
+
+  });
+
+  this.priceList = Object.values(grouped);
+}
+
 
 
   addPrice() {
@@ -203,9 +288,9 @@ export class EditProductComponent {
   validateForm(): boolean {
     this.errorArray = [];
 
-    if (!this.currentCatlog.focusProductId) {
-      this.errorArray.push('Product name is required.');
-    }
+    if (!this.currentCatlog.focusProductId || this.currentCatlog.focusProductId.length === 0) {
+  this.errorArray.push('Product name is required.');
+}
 
     if (!this.currentCatlog.productOfferImage && !this.currentCatlog.productOfferImageUrl) {
       this.errorArray.push('Product image is required.');
@@ -252,6 +337,26 @@ export class EditProductComponent {
       let oldDate = this.currentCatlog.productDescription;
       this.currentCatlog.productDescription = `${this.currentCatlog.productDescription}`;
 
+      const focusProductMapping: any[] = [];
+
+this.priceList.forEach(volumeGroup => {
+
+  const matchingProduct = this.focusProducts.find(p =>
+    this.currentCatlog.focusProductId.includes(p.iMasterId) &&
+    p.sName.replace(/\s/g, '').toUpperCase()
+      .includes(volumeGroup.volume.replace(/\s/g, '').toUpperCase())
+  );
+
+  if (matchingProduct) {
+    focusProductMapping.push({
+      volume: volumeGroup.volume,
+      focusProductId: matchingProduct.iMasterId,
+      focusUnitId: 1
+    });
+  }
+});
+
+
       const formData = new FormData();
 
       if (this.currentCatlog.productOfferImage) {
@@ -262,7 +367,8 @@ export class EditProductComponent {
       formData.append('productDescription', this.currentCatlog.productOfferDescription);
       formData.append('productStatus', this.currentCatlog.productOfferStatus);
       formData.append('price', JSON.stringify(this.currentCatlog.price));
-      formData.append('focusProductId', this.currentCatlog.focusProductId);
+      formData.append('focusProductMapping', JSON.stringify(focusProductMapping));
+
 
       this.apiRequestService
         .updateWithImage(this.apiUrls.updateProductCatlog + this.currentCatlog._id, formData)

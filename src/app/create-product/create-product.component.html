@@ -12,8 +12,9 @@
             <label for="productDescription" class="form-label fw-semibold">Product Name <span
                 class="text-danger">*</span></label>
             <ng-select [items]="focusProducts" bindLabel="sName" bindValue="iMasterId"
-              [(ngModel)]="currentCatlog.focusProductId" name="focusProductId" placeholder="Select Product Name"
-              [searchable]="true" [clearable]="true" required (ngModelChange)="onProductChange($event)">
+              [(ngModel)]="currentCatlog.focusProductIds" name="focusProductIds" [multiple]="true"
+              placeholder="Select Product Name" [searchable]="true" [clearable]="true" required
+              (ngModelChange)="onProductChange($event)">
             </ng-select>
 
             <div *ngIf="submitted && !currentCatlog.focusProductId" class="text-danger mt-1 small fst-italic">
@@ -49,31 +50,39 @@
         </div>
 
         <!-- Price Groups -->
-        <div *ngFor="let priceGroup of priceList; let i = index" class="mb-4 p-4 border rounded shadow-sm bg-light">
+        <div *ngFor="let priceGroup of priceList; let i = index; trackBy: trackByIndex" class="mb-4 p-4 border rounded shadow-sm bg-light">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <!-- Volume as Dropdown -->
             <div class="mb-3" style="width: 200px;">
               <label class="form-label fw-semibold">Volume</label>
               <select class="form-select" [(ngModel)]="priceList[i].volume" name="volume_{{i}}" required>
                 <option value="" disabled>Select Volume</option>
-                <option value="500ml">500ml</option>
-                <option value="1L">1L</option>
-                <option value="4l">4L</option>
-                <option value="10L">10L</option>
-                <option value="15L">15L</option>
-                <option value="20L">20L</option>
-                <option value="25L">25L</option>
-                <option value="30L">30L</option>
-                <option value="35L">35L</option>
-                <option value="40L">40L</option>
-
-                <!-- Weight Options -->
-                <option value="1KG">1 KG</option>
-                <option value="2KG">2 KG</option>
-                <option value="5KG">5 KG</option>
-                <option value="10KG">10 KG</option>
-                <option value="20KG">20 KG</option>
-                <option value="40KG">40 KG</option>
+                <option value="10ML">10ML</option>
+                <option value="50ML">50ML</option>
+                <option value="100ML">100ML</option>
+                <option value="200ML">200ML</option>
+                <option value="500ML">500ML</option>
+                <option value="1LTR">1L</option>
+                <option value="4LTR">4L</option>
+                <option value="10LTR">10L</option>
+                <option value="15LTR">15L</option>
+                <option value="20LTR">20L</option>
+                <option value="25LTR">25L</option>
+                <option value="30LTR">30</option>
+                <option value="35LTR">35</option>
+                <option value="40LTR">40L</option>
+                <option value="45LTR">45L</option>
+                <option value="50LTR">50L</option>
+                <option value="1KG">1KG</option>
+                <option value="2KG">2KG</option>
+                <option value="5KG">5KG</option>
+                <option value="10KG">10KG</option>
+                <option value="20KG">20KG</option>
+                <option value="25KG">25KG</option>
+                <option value="30KG">30KG</option>
+                <option value="35KG">35KG</option>
+                <option value="40KG">40KG</option>
+                <option value="50KG">50KG</option>
               </select>
             </div>
             <button class="btn btn-sm btn-outline-danger" type="button" (click)="priceList.splice(i, 1)">−</button>

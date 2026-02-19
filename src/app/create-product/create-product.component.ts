@@ -28,7 +28,7 @@ export class CreateProductComponent {
     productImageUrl: '',
     productDescription: '',
     productStatus: 'Active',
-    focusProductId: null,
+    focusProductIds: [],
     price: ''
   };
 
@@ -62,12 +62,41 @@ export class CreateProductComponent {
   }
 
   loadFocusDropdowns() {
-  this.apiRequestService.getFocusProducts().subscribe(res => {
-    this.focusProducts = (res.data || []).filter(
-      (x: any) => x.iMasterId && x.sName
+    this.apiRequestService.getFocusProducts().subscribe(
+      (res: any) => {
+
+        if (!res.success) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: res.message || 'Failed to fetch Focus Products',
+            showConfirmButton: false,
+            timer: 3000
+          });
+          return;
+        }
+
+        this.focusProducts = (res.data || []).filter(
+          (x: any) => x.iMasterId && x.sName
+        );
+      },
+      (error: any) => {
+        console.error('Focus API Error:', error);
+
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: error?.error?.message || 'Failed to fetch entities from Focus',
+          showConfirmButton: false,
+          timer: 3000
+        });
+
+        this.focusProducts = [];
+      }
     );
-  });
-}
+  }
 
 
   getAllStatesZonesAndDistricts() {
@@ -139,9 +168,9 @@ export class CreateProductComponent {
   validateForm(): boolean {
     this.errorArray = [];
 
- if (!this.currentCatlog.focusProductId) {
-    this.errorArray.push('Product name is required.');
-  }
+    if (!this.currentCatlog.focusProductIds || this.currentCatlog.focusProductIds.length === 0) {
+      this.errorArray.push('Product name is required.');
+    }
 
     if (!this.currentCatlog.productImage && !this.currentCatlog.productImageUrl) {
       this.errorArray.push('Product image is required.');
@@ -178,6 +207,26 @@ export class CreateProductComponent {
     let oldDate = this.currentCatlog.productDescription;
     this.currentCatlog.productDescription = `${this.currentCatlog.productDescription}`;
 
+    const focusProductMapping: any[] = [];
+
+    this.priceList.forEach(volumeGroup => {
+
+      const matchingProduct = this.focusProducts.find(p =>
+        this.currentCatlog.focusProductIds.includes(p.iMasterId) &&
+        p.sName.replace(/\s/g, '').toUpperCase()
+          .includes(volumeGroup.volume.replace(/\s/g, '').toUpperCase())
+
+      );
+
+      if (matchingProduct) {
+        focusProductMapping.push({
+          volume: volumeGroup.volume,
+          focusProductId: matchingProduct.iMasterId,
+          focusUnitId: 1
+        });
+      }
+    });
+
     const formData = new FormData();
     if (this.currentCatlog.productImage) {
       // if your API accepts file uploads as Blob
@@ -189,7 +238,8 @@ export class CreateProductComponent {
     formData.append('productDescription', this.currentCatlog.productDescription);
     formData.append('productStatus', this.currentCatlog.productStatus);
     formData.append('price', JSON.stringify(this.currentCatlog.price));
-    formData.append('focusProductId', this.currentCatlog.focusProductId);
+    formData.append('focusProductMapping', JSON.stringify(focusProductMapping));
+
 
 
     this.apiRequestService
@@ -211,20 +261,31 @@ export class CreateProductComponent {
         });
   }
 
+  trackByIndex(index: number): number {
+    return index;
+  }
+
   resetForm() {
     this.currentCatlog = {
       productImage: '',
       productImageUrl: '',
       productDescription: '',
       productStatus: 'Active',
+      focusProductIds: [],
       price: ''
     };
-    this.priceList = [{ volume: '', entries: [{ selectedKey: 'All', price: 1000 }] }];
+
+    this.priceList = [
+      { volume: '', entries: [{ selectedKey: 'All', price: 1000 }] }
+    ];
+
     this.submitted = false;
     this.errorArray = [];
+
     if (this.productCatlogForm) {
       this.productCatlogForm.resetForm();
     }
+
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }
@@ -238,11 +299,56 @@ export class CreateProductComponent {
     this.router.navigate(['/product-catalog']);
   }
 
-  onProductChange(productId: number) {
-  const selectedProduct = this.focusProducts.find(
-    p => p.iMasterId === productId
-  );
-  this.currentCatlog.productDescription = selectedProduct?.sName || '';
-}
+  onProductChange(productIds: number[]) {
+
+    if (!productIds || productIds.length === 0) {
+      this.priceList = [{ volume: '', entries: [{ selectedKey: 'All', price: 1000 }] }];
+      return;
+    }
+
+    const selectedProducts = this.focusProducts.filter(p =>
+      productIds.includes(p.iMasterId)
+    );
+
+    const newPriceList: any[] = [];
+    let baseProductName = '';
+
+    selectedProducts.forEach(product => {
+
+      const fullName = product.sName.trim();
+
+
+      const volumeRegex = /(\d+(?:\.\d+)?(?:\/\d+)?\s*(?:LTR|LITRE|LITRES|KG|KGS|ML))/i;
+      const match = fullName.match(volumeRegex);
+
+      let extractedVolume = '';
+      let cleanedName = fullName;
+
+      if (match) {
+        extractedVolume = match[0]
+          .replace(/\s/g, '')
+          .toUpperCase()
+          .replace('LTRS', 'LTR')
+          .replace('KGS', 'KG');
+        cleanedName = fullName.replace(match[0], '').trim();
+      }
+
+      baseProductName = cleanedName;
+
+      if (extractedVolume) {
+        newPriceList.push({
+          volume: extractedVolume,
+          entries: [{ selectedKey: 'All', price: 1000 }]
+        });
+      }
+    });
+
+    this.currentCatlog.productDescription = baseProductName;
+    this.priceList.length = 0;
+    this.priceList.push(...newPriceList);
+
+  }
+
+
 
 }

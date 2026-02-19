@@ -73,108 +73,113 @@ export class EditProductComponent {
     this.loadFocusProducts();
   }
 
-loadFocusProducts() {
-  this.apiRequestService.getFocusProducts().subscribe(
-    (res: any) => {
+  loadFocusProducts() {
+    this.apiRequestService.getFocusProducts().subscribe(
+      (res: any) => {
 
-      if (!res || res.success === false) {
+        if (!res || res.success === false) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Focus API Error',
+            text: res?.message || 'Failed to fetch entities from Focus',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
+
+        this.focusProducts = (res.data || []).filter(
+          (x: any) => x.iMasterId && x.sName
+        );
+
+        this.setSelectedProduct();
+      },
+      (error: any) => {
+        console.error('Focus API Error:', error);
+
         Swal.fire({
           icon: 'error',
           title: 'Focus API Error',
-          text: res?.message || 'Failed to fetch entities from Focus',
+          text: error?.error?.message || 'Failed to fetch entities from Focus',
           confirmButtonColor: '#d33',
           confirmButtonText: 'OK'
         });
-        return;
+
+        this.focusProducts = [];
       }
-
-      this.focusProducts = (res.data || []).filter(
-        (x: any) => x.iMasterId && x.sName
-      );
-
-      this.setSelectedProduct();
-    },
-    (error: any) => {
-      console.error('Focus API Error:', error);
-
-      Swal.fire({
-        icon: 'error',
-        title: 'Focus API Error',
-        text: error?.error?.message || 'Failed to fetch entities from Focus',
-        confirmButtonColor: '#d33',
-        confirmButtonText: 'OK'
-      });
-
-      this.focusProducts = [];
-    }
-  );
-}
-
-
- setSelectedProduct() {
-
-  if (!Array.isArray(this.currentCatlog.focusProductMapping)) return;
-
-  const ids = this.currentCatlog.focusProductMapping.map(
-    (m: any) => m.focusProductId
-  );
-
- this.currentCatlog.focusProductId = ids;
-}
-
-
-onProductChange(productIds: number[]) {
-
-  if (!productIds || productIds.length === 0) {
-    this.currentCatlog.productOfferDescription = '';
-    this.priceList = [];
-    return;
+    );
   }
 
-  const selectedProducts = this.focusProducts.filter(p =>
-    productIds.includes(p.iMasterId)
-  );
 
-  let baseProductName = '';
-  const extractedVolumes: string[] = [];
+  setSelectedProduct() {
 
-  selectedProducts.forEach(product => {
+    if (!Array.isArray(this.currentCatlog.focusProductMapping)) return;
 
-    const fullName = product.sName.trim();
-    const volumeRegex = /(\d+\s?(LTRS?|LTR|ML|KG|L))/i;
-    const match = fullName.match(volumeRegex);
+    const ids = this.currentCatlog.focusProductMapping.map(
+      (m: any) => m.focusProductId
+    );
 
-    let cleanedName = fullName;
+    this.currentCatlog.focusProductId = ids;
+  }
 
-    if (match) {
-      const volume = match[0].replace(/\s/g, '').toUpperCase();
-      extractedVolumes.push(volume);
-      cleanedName = fullName.replace(match[0], '').trim();
+
+  onProductChange(productIds: number[]) {
+
+    if (!productIds || productIds.length === 0) {
+      this.currentCatlog.productOfferDescription = '';
+      this.priceList = [];
+      return;
     }
 
-    baseProductName = cleanedName;
-  });
+    const selectedProducts = this.focusProducts.filter(p =>
+      productIds.includes(p.iMasterId)
+    );
 
-  this.currentCatlog.productOfferDescription = baseProductName;
+    let baseProductName = '';
+    const extractedVolumes: string[] = [];
 
-  
-  this.priceList = this.priceList.filter(v =>
-    extractedVolumes.includes(v.volume)
-  );
+    selectedProducts.forEach(product => {
+
+      const fullName = product.sName.trim();
+      const volumeRegex = /(\d+(?:\.\d+)?(?:\/\d+)?\s?(?:ltr?s?|kg?s?|ml))/i;
+      const match = fullName.match(volumeRegex);
+
+      let cleanedName = fullName;
+
+      if (match) {
+        const volume = match[0]
+          .replace(/\s/g, '')
+          .toUpperCase()
+          .replace('LTRS', 'LTR')
+          .replace('KGS', 'KG');
+
+        extractedVolumes.push(volume);
+        cleanedName = fullName.replace(match[0], '').trim();
+      }
+
+      baseProductName = cleanedName;
+    });
+
+    this.currentCatlog.productOfferDescription = baseProductName;
 
 
-  extractedVolumes.forEach(volume => {
+    this.priceList = this.priceList.filter(v =>
+      extractedVolumes.includes(v.volume)
+    );
 
-    const exists = this.priceList.find(v => v.volume === volume);
 
-    if (!exists) {
-      this.priceList.push({
-        volume: volume,
-        entries: [{ selectedKey: 'All', price: 1000 }] 
-      });
-    }
-  });
-}
+    extractedVolumes.forEach(volume => {
+
+      const exists = this.priceList.find(v => v.volume === volume);
+
+      if (!exists) {
+        this.priceList.push({
+          volume: volume,
+          entries: [{ selectedKey: 'All', price: 1000 }]
+        });
+      }
+    });
+  }
 
 
 
@@ -209,35 +214,35 @@ onProductChange(productIds: number[]) {
       });
   }
 
- initPriceList() {
+  initPriceList() {
 
-  if (!Array.isArray(this.currentCatlog.price) || this.currentCatlog.price.length === 0) {
-    this.priceList = [
-      { volume: '', entries: [{ selectedKey: 'All', price: 0 }] }
-    ];
-    return;
-  }
-
-  const grouped: any = {};
-
-  this.currentCatlog.price.forEach((item: any) => {
-
-    if (!grouped[item.volume]) {
-      grouped[item.volume] = {
-        volume: item.volume,
-        entries: []
-      };
+    if (!Array.isArray(this.currentCatlog.price) || this.currentCatlog.price.length === 0) {
+      this.priceList = [
+        { volume: '', entries: [{ selectedKey: 'All', price: 0 }] }
+      ];
+      return;
     }
 
-    grouped[item.volume].entries.push({
-      selectedKey: item.refId || 'All',
-      price: item.price || 0
+    const grouped: any = {};
+
+    this.currentCatlog.price.forEach((item: any) => {
+
+      if (!grouped[item.volume]) {
+        grouped[item.volume] = {
+          volume: item.volume,
+          entries: []
+        };
+      }
+
+      grouped[item.volume].entries.push({
+        selectedKey: item.refId || 'All',
+        price: item.price || 0
+      });
+
     });
 
-  });
-
-  this.priceList = Object.values(grouped);
-}
+    this.priceList = Object.values(grouped);
+  }
 
 
 
@@ -289,8 +294,8 @@ onProductChange(productIds: number[]) {
     this.errorArray = [];
 
     if (!this.currentCatlog.focusProductId || this.currentCatlog.focusProductId.length === 0) {
-  this.errorArray.push('Product name is required.');
-}
+      this.errorArray.push('Product name is required.');
+    }
 
     if (!this.currentCatlog.productOfferImage && !this.currentCatlog.productOfferImageUrl) {
       this.errorArray.push('Product image is required.');
@@ -339,22 +344,22 @@ onProductChange(productIds: number[]) {
 
       const focusProductMapping: any[] = [];
 
-this.priceList.forEach(volumeGroup => {
+      this.priceList.forEach(volumeGroup => {
 
-  const matchingProduct = this.focusProducts.find(p =>
-    this.currentCatlog.focusProductId.includes(p.iMasterId) &&
-    p.sName.replace(/\s/g, '').toUpperCase()
-      .includes(volumeGroup.volume.replace(/\s/g, '').toUpperCase())
-  );
+        const matchingProduct = this.focusProducts.find(p =>
+          this.currentCatlog.focusProductId.includes(p.iMasterId) &&
+          p.sName.replace(/\s/g, '').toUpperCase()
+            .includes(volumeGroup.volume.replace(/\s/g, '').toUpperCase())
+        );
 
-  if (matchingProduct) {
-    focusProductMapping.push({
-      volume: volumeGroup.volume,
-      focusProductId: matchingProduct.iMasterId,
-      focusUnitId: 1
-    });
-  }
-});
+        if (matchingProduct) {
+          focusProductMapping.push({
+            volume: volumeGroup.volume,
+            focusProductId: matchingProduct.iMasterId,
+            focusUnitId: 1
+          });
+        }
+      });
 
 
       const formData = new FormData();

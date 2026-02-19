@@ -61,42 +61,42 @@ export class CreateProductComponent {
     this.loadFocusDropdowns();
   }
 
- loadFocusDropdowns() {
-  this.apiRequestService.getFocusProducts().subscribe(
-    (res: any) => {
+  loadFocusDropdowns() {
+    this.apiRequestService.getFocusProducts().subscribe(
+      (res: any) => {
 
-      if (!res.success) {
+        if (!res.success) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: res.message || 'Failed to fetch Focus Products',
+            showConfirmButton: false,
+            timer: 3000
+          });
+          return;
+        }
+
+        this.focusProducts = (res.data || []).filter(
+          (x: any) => x.iMasterId && x.sName
+        );
+      },
+      (error: any) => {
+        console.error('Focus API Error:', error);
+
         Swal.fire({
           toast: true,
           position: 'top-end',
           icon: 'error',
-          title: res.message || 'Failed to fetch Focus Products',
+          title: error?.error?.message || 'Failed to fetch entities from Focus',
           showConfirmButton: false,
           timer: 3000
         });
-        return;
+
+        this.focusProducts = [];
       }
-
-      this.focusProducts = (res.data || []).filter(
-        (x: any) => x.iMasterId && x.sName
-      );
-    },
-    (error: any) => {
-      console.error('Focus API Error:', error);
-
-      Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'error',
-        title: error?.error?.message || 'Failed to fetch entities from Focus',
-        showConfirmButton: false,
-        timer: 3000
-      });
-
-      this.focusProducts = [];
-    }
-  );
-}
+    );
+  }
 
 
   getAllStatesZonesAndDistricts() {
@@ -262,8 +262,8 @@ export class CreateProductComponent {
   }
 
   trackByIndex(index: number): number {
-  return index;
-}
+    return index;
+  }
 
   resetForm() {
     this.currentCatlog = {
@@ -317,14 +317,19 @@ export class CreateProductComponent {
 
       const fullName = product.sName.trim();
 
-      const volumeRegex = /(\d+\s?(LTRS?|L|KG|ML))/i;
+
+      const volumeRegex = /(\d+(?:\.\d+)?(?:\/\d+)?\s*(?:LTR|LITRE|LITRES|KG|KGS|ML))/i;
       const match = fullName.match(volumeRegex);
 
       let extractedVolume = '';
       let cleanedName = fullName;
 
       if (match) {
-        extractedVolume = match[0].replace(/\s/g, '').toUpperCase();
+        extractedVolume = match[0]
+          .replace(/\s/g, '')
+          .toUpperCase()
+          .replace('LTRS', 'LTR')
+          .replace('KGS', 'KG');
         cleanedName = fullName.replace(match[0], '').trim();
       }
 
@@ -339,8 +344,8 @@ export class CreateProductComponent {
     });
 
     this.currentCatlog.productDescription = baseProductName;
-   this.priceList.length = 0;
-this.priceList.push(...newPriceList);
+    this.priceList.length = 0;
+    this.priceList.push(...newPriceList);
 
   }
 

@@ -214,7 +214,7 @@ export class PiechartdashboardComponent implements OnInit {
     });
   }
 
-  getSeriesColor(series: Highcharts.SeriesOptionsType): string {
+  getSeriesColor(series: Highcharts.SeriesOptionsType | Highcharts.UnknownSeriesOptions): string {
     const color = (series as Highcharts.SeriesColumnOptions).color;
     return typeof color === 'string' ? color : '#000000';
   }

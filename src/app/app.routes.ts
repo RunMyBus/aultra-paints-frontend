@@ -5,6 +5,7 @@ import {RegisterComponent} from './register/register.component';
 import {TransactionsComponent} from "./transactions/transactions.component";
 import {AuthGuard} from "./guards/auth.guard";
 import {NoAuthGuard} from "./guards/no-auth.guard";
+import {RoleGuard} from "./guards/role.guard";
 import { ProductListComponent } from './product-list/product-list.component';
 import { BrandListComponent } from './brand-list/brand-list.component';
 import { UserListComponent } from './user-list/user-list.component';
@@ -24,6 +25,9 @@ import { CreateProductComponent } from './create-product/create-product.componen
 import { EditProductComponent } from './edit-product/edit-product.component';
 import { TransactionLedgerComponent } from './transaction-ledger/transaction-ledger.component';
 
+const ADMIN = ['SuperUser'];
+const STAFF = ['SuperUser', 'SalesExecutive'];
+
 export const routes: Routes = [
     {path: 'login', component: LoginComponent, canActivate: [NoAuthGuard]},
     {path: 'register', component: RegisterComponent},
@@ -31,31 +35,27 @@ export const routes: Routes = [
     {
         path: '', component: LayoutComponent, canActivate: [AuthGuard],
         children: [
-            {path: '', component: DashboardComponent, canActivate: [AuthGuard]},
-            {path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard]},
-            {path: 'batch-list', component: BatchListComponent, canActivate: [AuthGuard]},
-            {path: 'create-batch', component:CreateBatchComponent, canActivate: [AuthGuard]},
-            {path: 'transactions', component: TransactionsComponent, canActivate: [AuthGuard]},
-            {path: 'product-list', component: ProductListComponent, canActivate: [AuthGuard]},
-            {path: 'brand-list', component: BrandListComponent, canActivate: [AuthGuard]},
-            {path: 'user-list', component: UserListComponent, canActivate: [AuthGuard]},
-            {path: 'unverified-users', component: UnverifiedUsersComponent, canActivate: [AuthGuard]},
-            {path: 'product-offers', component: ProductOffersComponent, canActivate: [AuthGuard]},
-            {path: 'reward-schemes', component: RewardSchemesComponent, canActivate: [AuthGuard]},
-            {path: 'payouts', component: PayoutsComponent, canActivate: [AuthGuard]},
-            {path: 'product-catalog', component: ProductCatlogComponent, canActivate:[AuthGuard]},
-            {path: 'order-list', component: OrderListComponent, canActivate:[AuthGuard]},
-            {path: 'piechart-dashboard', component:PiechartdashboardComponent, canActivate:[AuthGuard]},
-            {path: 'product-data-list', component:ProductDataListComponent, canActivate:[AuthGuard]},
-            {path: 'create-product', component:CreateProductComponent, canActivate:[AuthGuard]},
-            {path: 'edit-product', component:EditProductComponent, canActivate:[AuthGuard]},
-            {path: 'transaction-ledger', component:TransactionLedgerComponent, canActivate:[AuthGuard]},
-            
-            
+            {path: '', component: DashboardComponent},
+            {path: 'dashboard', component: DashboardComponent},
+            {path: 'batch-list', component: BatchListComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'create-batch', component: CreateBatchComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'transactions', component: TransactionsComponent, canActivate: [RoleGuard], data: { roles: STAFF }},
+            {path: 'product-list', component: ProductListComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'brand-list', component: BrandListComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'user-list', component: UserListComponent, canActivate: [RoleGuard], data: { roles: STAFF }},
+            {path: 'unverified-users', component: UnverifiedUsersComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'product-offers', component: ProductOffersComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'reward-schemes', component: RewardSchemesComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'payouts', component: PayoutsComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'product-catalog', component: ProductCatlogComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'order-list', component: OrderListComponent, canActivate: [RoleGuard], data: { roles: STAFF }},
+            {path: 'piechart-dashboard', component: PiechartdashboardComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'product-data-list', component: ProductDataListComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'create-product', component: CreateProductComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'edit-product', component: EditProductComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
+            {path: 'transaction-ledger', component: TransactionLedgerComponent},
         ]
 
     },
-  { path: '**', redirectTo: 'login' } 
-                              
-
+  { path: '**', redirectTo: 'login' }
 ];

@@ -3,6 +3,8 @@ import { ApiRequestService } from '../services/api-request.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-product-data-list',
@@ -11,7 +13,7 @@ import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './product-data-list.component.html',
   styleUrl: './product-data-list.component.css'
 })
-export class ProductDataListComponent {
+export class ProductDataListComponent extends Unsubscribable {
 
   statisticsList: any[] = [];
   currentPage = 1;
@@ -22,7 +24,7 @@ export class ProductDataListComponent {
   allBranches: string[] = [];
   dropdownOpen = false;
 
-  constructor(private apiService: ApiRequestService) {}
+  constructor(private apiService: ApiRequestService) { super(); }
 
   ngOnInit(): void {
     this.fetchData();
@@ -35,7 +37,7 @@ export class ProductDataListComponent {
       branches: this.selectedBranches
     };
 
-    this.apiService.getBatchStatisticsList(requestPayload).subscribe((res) => {
+    this.apiService.getBatchStatisticsList(requestPayload).pipe(takeUntil(this.destroy$)).subscribe((res) => {
       this.statisticsList = res.data || [];
       this.totalItems = res.pagination?.total || this.statisticsList.length;
 
@@ -60,7 +62,7 @@ exportBatchStatistics(): void {
     branches: this.selectedBranches
   };
 
-  this.apiService.exportBatchStatistics(requestPayload).subscribe((response: Blob) => {
+  this.apiService.exportBatchStatistics(requestPayload).pipe(takeUntil(this.destroy$)).subscribe((response: Blob) => {
     const blob = new Blob([response], { type: 'text/csv;charset=utf-8;' }); 
 
     const url = window.URL.createObjectURL(blob);

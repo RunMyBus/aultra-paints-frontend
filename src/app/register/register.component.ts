@@ -6,6 +6,8 @@ import { Router, RouterModule } from '@angular/router';
 import {ApiRequestService} from "../services/api-request.service";
 import {ApiUrlsService} from "../services/api-urls.service";
 import Swal from 'sweetalert2';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 
 @Component({
@@ -15,7 +17,7 @@ import Swal from 'sweetalert2';
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
-export class RegisterComponent {
+export class RegisterComponent extends Unsubscribable {
   name: string = '';
   email: string = '';
   mobile: string = '';
@@ -28,14 +30,14 @@ export class RegisterComponent {
     private authService: AuthService,
     private apiService: ApiRequestService,
     private ApiUrls: ApiUrlsService
-  ) {}
+  ) { super(); }
 
   register() {
 
     this.errorMessage = '';
 
     // Make the API call for registration
-    this.apiService.create(this.ApiUrls.register, { name: this.name, mobile: this.mobile, email: this.email, password: this.password }).subscribe({
+    this.apiService.create(this.ApiUrls.register, { name: this.name, mobile: this.mobile, email: this.email, password: this.password }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         console.log('Registration successful:', response.message);
         this.successMessage = 'Registration successful! You can now log in.';

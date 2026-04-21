@@ -8,6 +8,8 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-create-product',
@@ -17,7 +19,7 @@ import { Router } from '@angular/router';
   templateUrl: './create-product.component.html',
   styleUrl: './create-product.component.css'
 })
-export class CreateProductComponent {
+export class CreateProductComponent extends Unsubscribable {
 
   @ViewChild('productCatlogForm') productCatlogForm!: NgForm;
   @ViewChild('fileInput') fileInput: any;
@@ -53,6 +55,7 @@ export class CreateProductComponent {
     private router: Router,
     private authService: AuthService
   ) {
+    super();
     this.currentUser = this.authService.currentUserValue;
   }
 
@@ -62,7 +65,7 @@ export class CreateProductComponent {
   }
 
   loadFocusDropdowns() {
-    this.apiRequestService.getFocusProducts().subscribe(
+    this.apiRequestService.getFocusProducts().pipe(takeUntil(this.destroy$)).subscribe(
       (res: any) => {
 
         if (!res.success) {
@@ -244,6 +247,7 @@ export class CreateProductComponent {
 
     this.apiRequestService
       .createWithImage(this.apiUrls.createProductCatlog, formData)
+      .pipe(takeUntil(this.destroy$))
       .subscribe(
         () => {
           Swal.fire('Success', 'Product catalog added successfully', 'success');

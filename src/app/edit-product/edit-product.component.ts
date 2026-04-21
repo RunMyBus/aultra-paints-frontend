@@ -6,6 +6,8 @@ import { ApiUrlsService } from '../services/api-urls.service';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 
 @Component({
@@ -15,7 +17,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
   templateUrl: './edit-product.component.html',
   styleUrl: './edit-product.component.css'
 })
-export class EditProductComponent {
+export class EditProductComponent extends Unsubscribable {
   @ViewChild('productCatlogForm') productCatlogForm!: NgForm;
 
   currentCatlog: any = {
@@ -43,6 +45,7 @@ export class EditProductComponent {
     private apiRequestService: ApiRequestService,
     public apiUrls: ApiUrlsService
   ) {
+    super();
     const nav = this.router.getCurrentNavigation();
     const navState = nav?.extras?.state;
 
@@ -74,7 +77,7 @@ export class EditProductComponent {
   }
 
   loadFocusProducts() {
-    this.apiRequestService.getFocusProducts().subscribe(
+    this.apiRequestService.getFocusProducts().pipe(takeUntil(this.destroy$)).subscribe(
       (res: any) => {
 
         if (!res || res.success === false) {
@@ -377,6 +380,7 @@ export class EditProductComponent {
 
       this.apiRequestService
         .updateWithImage(this.apiUrls.updateProductCatlog + this.currentCatlog._id, formData)
+        .pipe(takeUntil(this.destroy$))
         .subscribe(
           () => {
             Swal.fire('Success', 'Product catalog updated successfully', 'success');

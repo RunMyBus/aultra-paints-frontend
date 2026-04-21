@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import Swal from 'sweetalert2'; 
 import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-product-list',
@@ -13,7 +15,7 @@ import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })
-export class ProductListComponent implements OnInit {
+export class ProductListComponent extends Unsubscribable implements OnInit {
    products: any[] = [];
   brands: any[] = [];  // <-- Added for brands
   totalBrands: number = 0;
@@ -32,7 +34,7 @@ export class ProductListComponent implements OnInit {
   limit: number = 10;
   limitOptions: number[] = [10, 20, 50, 100]; 
 
-  constructor(private apiService: ApiRequestService, private modalService: NgbModal) {}
+  constructor(private apiService: ApiRequestService, private modalService: NgbModal) { super(); }
   @ViewChild('productForm', { static: false }) productForm!: NgForm;
 
   ngOnInit(): void {
@@ -40,7 +42,7 @@ export class ProductListComponent implements OnInit {
   }
 
   loadProducts(): void {
-    this.apiService.getProducts({ page: this.currentPage, limit: this.limit }).subscribe(
+    this.apiService.getProducts({ page: this.currentPage, limit: this.limit }).pipe(takeUntil(this.destroy$)).subscribe(
       (data) => {
         this.products = data.products;  
         this.totalProducts = data.pagination.totalProducts; 
@@ -54,7 +56,7 @@ export class ProductListComponent implements OnInit {
 
   loadBrands(): void {
     const data = { page: 1, limit: 1000 }; 
-    this.apiService.getAllBrands(data).subscribe({
+    this.apiService.getAllBrands(data).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         this.brands = response.brands;
         this.totalBrands = response.pagination.totalBrands;
@@ -73,7 +75,7 @@ export class ProductListComponent implements OnInit {
     }
 
     this.isSearching = true;
-    this.apiService.searchProductByName(this.searchQuery, this.currentPage, this.limit).subscribe(
+    this.apiService.searchProductByName(this.searchQuery, this.currentPage, this.limit).pipe(takeUntil(this.destroy$)).subscribe(
       (data) => {
         if (data && data.data && data.data.length > 0) {
           this.products = data.data;  
@@ -122,7 +124,7 @@ export class ProductListComponent implements OnInit {
           ? this.apiService.updateProduct(this.currentProduct._id, this.currentProduct)
           : this.apiService.createProduct(this.currentProduct);
 
-        saveRequest.subscribe({
+        saveRequest.pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
             this.loadProducts();  
             this.showSuccess(this.currentProduct._id ? 'Product updated successfully!' : 'Product added successfully!');
@@ -158,7 +160,7 @@ export class ProductListComponent implements OnInit {
       cancelButtonText: 'No, keep it'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.apiService.deleteProduct(id).subscribe(
+        this.apiService.deleteProduct(id).pipe(takeUntil(this.destroy$)).subscribe(
           () => {
             this.loadProducts();
             Swal.fire('Deleted!', 'The product has been deleted.', 'success');

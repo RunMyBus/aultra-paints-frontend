@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
 import * as XLSX from 'xlsx'; // Import XLSX library
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-payouts',
@@ -12,7 +14,7 @@ import * as XLSX from 'xlsx'; // Import XLSX library
   templateUrl: './payouts.component.html',
   styleUrl: './payouts.component.css'
 })
-export class PayoutsComponent {
+export class PayoutsComponent extends Unsubscribable {
   cashFreeTransactions: any[] = []; // Store the fetched transactions
   limit: number = 10; // Default page size
   currentPage: number = 1; // Default current page
@@ -26,7 +28,7 @@ export class PayoutsComponent {
   showToast: boolean = false;
 
 
-  constructor( private apiRequestService: ApiRequestService,) {}
+  constructor( private apiRequestService: ApiRequestService,) { super(); }
 
   ngOnInit(): void {
       this.loadBalance();
@@ -35,7 +37,7 @@ export class PayoutsComponent {
 
   // Method to fetch CashFree transactions with pagination
   loadTransactions(page: number = 1, limit: number = 10): void {
-    this.apiRequestService.getCashFreeTransactions(page, limit).subscribe(
+    this.apiRequestService.getCashFreeTransactions(page, limit).pipe(takeUntil(this.destroy$)).subscribe(
       (response) => {
         this.cashFreeTransactions = response.cashFreeTransactions;
         this.totalTransactions = response.pagination.totalTransactions;
@@ -63,7 +65,7 @@ export class PayoutsComponent {
 
    //  Load available balance
   loadBalance(): void {
-    this.apiRequestService.getCashFreeBalance().subscribe(
+    this.apiRequestService.getCashFreeBalance().pipe(takeUntil(this.destroy$)).subscribe(
       (response) => {
         if (response.success) {
           this.availableBalance = response.availableBalance;

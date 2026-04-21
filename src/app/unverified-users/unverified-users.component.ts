@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { NgbModal, NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-unverified-users',
@@ -13,7 +15,7 @@ import { NgbModal, NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './unverified-users.component.html',
   styleUrl: './unverified-users.component.css'
 })
-export class UnverifiedUsersComponent {
+export class UnverifiedUsersComponent extends Unsubscribable {
   unverifiedUsers: any[] = [];
   totalUsers: number = 0;
   totalPages: number = 0;
@@ -25,7 +27,7 @@ export class UnverifiedUsersComponent {
   errorsEditUser: any[] = [];  // To store errors for the edit form
   submitted: boolean = false;  // To track form submission status
 
-  constructor(private apiRequestService: ApiRequestService, private router: Router,  private modalService: NgbModal) {}
+  constructor(private apiRequestService: ApiRequestService, private router: Router,  private modalService: NgbModal) { super(); }
 
   ngOnInit(): void {
     this.fetchUnverifiedUsers(); 
@@ -34,7 +36,7 @@ export class UnverifiedUsersComponent {
   // Method to fetch users with searchQuery, page, and limit
   fetchUnverifiedUsers(page: number = 1, limit: number = 10, searchQuery: string = ''): void {
     console.log('Fetching users with search query:', searchQuery);  // Debugging line
-    this.apiRequestService.getUnverifiedUsers(page, limit, searchQuery).subscribe({
+    this.apiRequestService.getUnverifiedUsers(page, limit, searchQuery).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.unverifiedUsers = response.data;
         this.totalUsers = response.total;
@@ -49,7 +51,7 @@ export class UnverifiedUsersComponent {
   }
 
   exportUsers(): void {
-  this.apiRequestService.exportUnverifiedUsers().subscribe({
+  this.apiRequestService.exportUnverifiedUsers().pipe(takeUntil(this.destroy$)).subscribe({
     next: (blob: Blob) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -88,7 +90,7 @@ export class UnverifiedUsersComponent {
       }).then((result) => {
         if (result.isConfirmed) {
           // Update user via API
-          this.apiRequestService.updateUser(this.currentUser._id, this.currentUser).subscribe(
+          this.apiRequestService.updateUser(this.currentUser._id, this.currentUser).pipe(takeUntil(this.destroy$)).subscribe(
             () => {
               this.fetchUnverifiedUsers(this.currentPage, this.limit, this.searchQuery);
               Swal.fire('User updated successfully!', '', 'success');

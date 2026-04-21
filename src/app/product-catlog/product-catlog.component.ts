@@ -15,6 +15,8 @@ import { FormsModule, NgForm } from "@angular/forms";
 import { CommonModule, DatePipe } from "@angular/common";
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-product-catlog',
@@ -24,7 +26,7 @@ import { Router } from '@angular/router';
   styleUrl: './product-catlog.component.css',
   providers: [DatePipe]
 })
-export class ProductCatlogComponent {
+export class ProductCatlogComponent extends Unsubscribable {
      @ViewChild('productCatlogForm') productCatlogForm!: NgForm;
      @ViewChild('addToCartModal') addToCartModal!:NgForm;
     productCatlogs: any[] = [];
@@ -72,7 +74,8 @@ focusEntities: any[] = [];
 selectedEntityId: number | null = null;
 
   
-    constructor(private apiRequestService: ApiRequestService, private modalService: NgbModal, public apiUrls: ApiUrlsService, private datePipe: DatePipe,private AuthService:AuthService, private router: Router ) {    this.currentUser = this.AuthService.currentUserValue;
+    constructor(private apiRequestService: ApiRequestService, private modalService: NgbModal, public apiUrls: ApiUrlsService, private datePipe: DatePipe,private AuthService:AuthService, private router: Router ) {    super();
+        this.currentUser = this.AuthService.currentUserValue;
     }
   
     ngOnInit(): void {
@@ -82,14 +85,14 @@ selectedEntityId: number | null = null;
     }
   
     loadFocusEntities() {
-  this.apiRequestService.getFocusEntities().subscribe(res => {
+  this.apiRequestService.getFocusEntities().pipe(takeUntil(this.destroy$)).subscribe(res => {
     this.focusEntities = res.data || [];
   });
 }
 
     loadProductCatlogs() {
       this.productCatlogs = [];
-      this.apiRequestService.create(this.apiUrls.searchProductCatlog, this.productCatlogsQuery).subscribe((response: any) => {
+      this.apiRequestService.create(this.apiUrls.searchProductCatlog, this.productCatlogsQuery).pipe(takeUntil(this.destroy$)).subscribe((response: any) => {
         this.productCatlogs = response.data;
         this.totalProductCatlogs = response.total;
         this.totalPages = Math.ceil(this.totalProductCatlogs / this.productCatlogsQuery.limit);
@@ -305,7 +308,7 @@ updateCart(product: any, volume: string, change: number) {
         cancelButtonText: 'No, keep it'
       }).then((result) => {
         if (result.isConfirmed) {
-          this.apiRequestService.delete(this.apiUrls.deleteProductCatlog + catlogId).subscribe({
+          this.apiRequestService.delete(this.apiUrls.deleteProductCatlog + catlogId).pipe(takeUntil(this.destroy$)).subscribe({
             next: () => {
               this.loadProductCatlogs();
               Swal.fire('Catlog Deleted!', 'The catlog has been successfully removed.', 'success');
@@ -380,7 +383,7 @@ updateCart(product: any, volume: string, change: number) {
             price: priceArray
           };
     
-          this.apiRequestService.update(this.apiUrls.updateProductCatlog + catlog._id, updateData).subscribe({
+          this.apiRequestService.update(this.apiUrls.updateProductCatlog + catlog._id, updateData).pipe(takeUntil(this.destroy$)).subscribe({
             next: (response) => {
               if (response) {
                 this.timestamp = new Date().getTime();
@@ -423,7 +426,7 @@ updateCart(product: any, volume: string, change: number) {
         totalPrice
       };
     
-      this.apiRequestService.createOrder(orderPayload).subscribe({
+      this.apiRequestService.createOrder(orderPayload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response) => {
           Swal.fire('Order Placed', 'Your order was placed successfully!', 'success');
           this.cart = {};

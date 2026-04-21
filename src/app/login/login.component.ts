@@ -4,8 +4,9 @@ import {AuthService} from '../services/auth.service';
 import {Component} from '@angular/core';
 import {FormsModule, NgForm} from '@angular/forms';
 import {Router, RouterModule} from '@angular/router';
-import {first} from "rxjs";
+import {first, takeUntil} from "rxjs";
 import Swal from 'sweetalert2';
+import { Unsubscribable } from '../shared/unsubscribable';
 
 
 @Component({
@@ -15,7 +16,7 @@ import Swal from 'sweetalert2';
     templateUrl: './login.component.html',
     styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent extends Unsubscribable {
     mobile: string = '';
     otp: any;
     errorMessage: string = '';
@@ -24,6 +25,7 @@ export class LoginComponent {
     loading: boolean = false;
 
     constructor(private router: Router, private authService: AuthService) {
+        super();
     }
 
     ngOnInit(): void {
@@ -38,7 +40,7 @@ export class LoginComponent {
         if (this.mobile.length === 10) {
             this.loading = true;
             this.clearMessages();
-            this.authService.loginWithOTP(this.mobile).pipe(first()).subscribe({
+            this.authService.loginWithOTP(this.mobile).pipe(first(), takeUntil(this.destroy$)).subscribe({
                 next: (response) => {
                     this.loading = false;
                     this.otpSent = true; // Show OTP input after success
@@ -68,7 +70,7 @@ export class LoginComponent {
             const otp = parseInt(this.otp);
             this.loading = true;
             this.clearMessages();
-            this.authService.verifyOTP(this.mobile, otp).pipe(first()).subscribe({
+            this.authService.verifyOTP(this.mobile, otp).pipe(first(), takeUntil(this.destroy$)).subscribe({
                 next: (response) => {
                     this.loading = false;
                     Swal.fire({

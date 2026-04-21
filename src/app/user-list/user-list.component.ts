@@ -7,9 +7,10 @@ import {FormsModule, NgForm} from '@angular/forms';
 import {Router} from "@angular/router";
 import { RouterModule } from '@angular/router';
 import {ApiUrlsService} from "../services/api-urls.service";
-import {isArray} from "node:util";
 import {AuthService} from "../services/auth.service";
 import { UnverifiedUsersComponent } from '../unverified-users/unverified-users.component';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-user-list',
@@ -20,7 +21,7 @@ import { UnverifiedUsersComponent } from '../unverified-users/unverified-users.c
 })
 
 
-export class UserListComponent implements OnInit {
+export class UserListComponent extends Unsubscribable implements OnInit {
     @ViewChild('userForm', { static: false }) userForm!: NgForm;
 
     
@@ -70,6 +71,7 @@ export class UserListComponent implements OnInit {
 
     constructor(private apiService: ApiRequestService, private modalService: NgbModal,
                 private router: Router, private apiUrls: ApiUrlsService, private AuthService: AuthService) {
+        super();
         this.loginUser = this.AuthService.currentUserValue;
     }
 
@@ -84,13 +86,15 @@ export class UserListComponent implements OnInit {
     loadUsers(): void {
         this.page = this.currentPage;
     
-        this.apiService.getUsers(this.page, this.limit, this.searchQuery, this.selectedAccountType).subscribe(
+        this.apiService.getUsers(this.page, this.limit, this.searchQuery, this.selectedAccountType)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(
             (response) => {
                 this.users = response.data;
                 this.total = response.total;
                 this.totalPages = Math.ceil(this.total / this.limit);
             },
-            
+
             (error) => {
                 console.error('Error fetching users:', error);
             }
@@ -145,7 +149,7 @@ export class UserListComponent implements OnInit {
     }
     
     loadSalesExecutives(): void {
-        this.apiService.getAllSalesExecutives().subscribe(
+        this.apiService.getAllSalesExecutives().pipe(takeUntil(this.destroy$)).subscribe(
             (response) => {
                 if (response.status === 'success' && Array.isArray(response.data)) {
                     this.salesExecutives = response.data;
@@ -160,7 +164,7 @@ export class UserListComponent implements OnInit {
     }
     // fetch stateNames
     getStateNames(): void {
-        this.apiService.getStates().subscribe(
+        this.apiService.getStates().pipe(takeUntil(this.destroy$)).subscribe(
           (response: any) => {
             if (response && response.data && Array.isArray(response.data)) {
               this.stateNames = response.data; 
@@ -176,7 +180,7 @@ export class UserListComponent implements OnInit {
 
       // Fetch Zone Names 
 getZoneNames(): void {
-    this.apiService.getZones().subscribe(
+    this.apiService.getZones().pipe(takeUntil(this.destroy$)).subscribe(
         (response) => {
             if (response && response.data) {
                 this.zoneNames = response.data; 
@@ -190,7 +194,7 @@ getZoneNames(): void {
       
 // Fetch District Names 
 getDistrictNames(): void {
-    this.apiService.getDistricts().subscribe(
+    this.apiService.getDistricts().pipe(takeUntil(this.destroy$)).subscribe(
         (response) => {
             if (response && response.data) {
                 this.districtNames = response.data; 

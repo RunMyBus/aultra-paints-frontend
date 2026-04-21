@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2'; 
 import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-brand-list',
@@ -13,7 +15,7 @@ import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './brand-list.component.html',
   styleUrls: ['./brand-list.component.css']
 })
-export class BrandListComponent {
+export class BrandListComponent extends Unsubscribable {
  brands: any[] = [];
   searchQuery: string = '';
   currentBrand: any = { name: '' };
@@ -32,7 +34,7 @@ export class BrandListComponent {
   constructor(
     private apiRequestService: ApiRequestService,
     private modalService: NgbModal
-  ) { }
+  ) { super(); }
 
   @ViewChild('brandForm', { static: false }) brandForm!: NgForm;
 
@@ -42,7 +44,7 @@ export class BrandListComponent {
 
   loadBrands(): void {
     const data = { page: this.currentPage, limit: this.limit };
-    this.apiRequestService.getAllBrands(data).subscribe({
+    this.apiRequestService.getAllBrands(data).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         this.brands = response.brands;
         this.totalBrands = response.pagination.totalBrands;
@@ -61,7 +63,7 @@ export class BrandListComponent {
     }
 
     this.isSearching = true;
-    this.apiRequestService.searchBrandsByName(this.searchQuery, this.currentPage, this.limit).subscribe({
+    this.apiRequestService.searchBrandsByName(this.searchQuery, this.currentPage, this.limit).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         if (response && response.data && response.data.length > 0) {
           this.brands = response.data;
@@ -118,7 +120,7 @@ export class BrandListComponent {
           ? this.apiRequestService.updateBrand(this.currentBrand._id, this.currentBrand)
           : this.apiRequestService.createBrand(this.currentBrand);
 
-        saveRequest.subscribe({
+        saveRequest.pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
             this.loadBrands();
             this.showSuccess(this.currentBrand._id ? 'Brand updated successfully!' : 'Brand added successfully!');
@@ -144,7 +146,7 @@ export class BrandListComponent {
       cancelButtonText: 'No, keep it'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.apiRequestService.deleteBrand(id).subscribe(() => {
+        this.apiRequestService.deleteBrand(id).pipe(takeUntil(this.destroy$)).subscribe(() => {
           this.loadBrands();
           Swal.fire('Deleted!', 'Your brand has been deleted.', 'success');
         }, () => {

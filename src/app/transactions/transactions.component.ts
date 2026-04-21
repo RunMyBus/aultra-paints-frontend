@@ -8,6 +8,8 @@ import { ApiRequestService } from "../services/api-request.service";
 import {NgbModal, NgbPagination} from "@ng-bootstrap/ng-bootstrap";
 import { ChangeDetectorRef } from '@angular/core';
 import * as XLSX from 'xlsx';  // Import XLSX library
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-transactions',
@@ -26,7 +28,7 @@ import * as XLSX from 'xlsx';  // Import XLSX library
     templateUrl: './transactions.component.html',
     styleUrls: ['./transactions.component.css']
 })
-export class TransactionsComponent implements OnInit {
+export class TransactionsComponent extends Unsubscribable implements OnInit {
     currentPage = 1;
     totalPages = 1;
     limit = 10;
@@ -53,7 +55,7 @@ export class TransactionsComponent implements OnInit {
                 private ApiUrls: ApiUrlsService,
                 private modalService: NgbModal,
                 private cdr: ChangeDetectorRef,
-                private apiRequest: ApiRequestService) { }
+                private apiRequest: ApiRequestService) { super(); }
 
     ngOnInit(): void {
         this.filterBasedOnUser();
@@ -78,7 +80,7 @@ export class TransactionsComponent implements OnInit {
           couponCode: this.filterCouponCode,
           showUsedCoupons: this.showUsedCoupons,
           salesExecutiveMobile: this.selectedSalesExecutive
-        }).subscribe(
+        }).pipe(takeUntil(this.destroy$)).subscribe(
           (response: any) => {
             this.transactions = response.transactionsData;
             this.totalPages = Math.ceil(response.total / this.limit);
@@ -93,7 +95,7 @@ export class TransactionsComponent implements OnInit {
       }
 
       loadSalesExecutives() {
-        this.apiRequest.getAllSalesExecutives().subscribe({
+        this.apiRequest.getAllSalesExecutives().pipe(takeUntil(this.destroy$)).subscribe({
           next: (response: any) => {
             this.salesExecutives = response.data;
             console.log('Sales Executives loaded:', this.salesExecutives);
@@ -105,7 +107,7 @@ export class TransactionsComponent implements OnInit {
       }
 
       exportToExcel(): void {
-        this.apiRequest.exportTransaction().subscribe({
+        this.apiRequest.exportTransaction().pipe(takeUntil(this.destroy$)).subscribe({
           next: (blob: Blob) => {
             const objectUrl = URL.createObjectURL(blob);
             const a = document.createElement('a');

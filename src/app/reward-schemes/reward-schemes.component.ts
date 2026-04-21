@@ -5,6 +5,8 @@ import {NgbAlertModule, NgbInputDatepicker, NgbModal, NgbModalRef, NgbPagination
 import {ApiRequestService} from "../services/api-request.service";
 import {ApiUrlsService} from "../services/api-urls.service";
 import Swal from "sweetalert2";
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-reward-schemes',
@@ -13,7 +15,7 @@ import Swal from "sweetalert2";
   templateUrl: './reward-schemes.component.html',
   styleUrl: './reward-schemes.component.css'
 })
-export class RewardSchemesComponent implements OnInit {
+export class RewardSchemesComponent extends Unsubscribable implements OnInit {
   rewardSchemes: any[] = [];
   currentRewardScheme: any = {
     rewardSchemeImageUrl: '',
@@ -37,6 +39,7 @@ export class RewardSchemesComponent implements OnInit {
   uploadImageWidth: string = '20%';
 
   constructor(private apiRequestService: ApiRequestService, private modalService: NgbModal, public apiUrls: ApiUrlsService) {
+    super();
   }
 
   ngOnInit(): void {
@@ -45,7 +48,7 @@ export class RewardSchemesComponent implements OnInit {
 
   loadRewardSchemes() {
     this.rewardSchemes = [];
-    this.apiRequestService.create(this.apiUrls.searchRewardSchemes, this.rewardSchemesQuery).subscribe((response: any) => {
+    this.apiRequestService.create(this.apiUrls.searchRewardSchemes, this.rewardSchemesQuery).pipe(takeUntil(this.destroy$)).subscribe((response: any) => {
       this.rewardSchemes = response.data;
       this.totalRewardSchemes = response.pagination.totalSchemes;
       this.totalPages = response.pagination.totalPages;  // Ensure totalPages is set correctly
@@ -93,7 +96,7 @@ export class RewardSchemesComponent implements OnInit {
     };
   
     if (this.currentRewardScheme._id) {
-      this.apiRequestService.updateWithImage(this.apiUrls.updateRewardScheme + this.currentRewardScheme._id, formData).subscribe(
+      this.apiRequestService.updateWithImage(this.apiUrls.updateRewardScheme + this.currentRewardScheme._id, formData).pipe(takeUntil(this.destroy$)).subscribe(
         (response) => {
           if (response) {
             modalRef.close();
@@ -107,7 +110,7 @@ export class RewardSchemesComponent implements OnInit {
         (error) => handleError(error) // Use the error handler
       );
     } else {
-      this.apiRequestService.createWithImage(this.apiUrls.createRewardScheme, formData).subscribe(
+      this.apiRequestService.createWithImage(this.apiUrls.createRewardScheme, formData).pipe(takeUntil(this.destroy$)).subscribe(
         (response) => {
           if (response) {
             modalRef.close();
@@ -133,7 +136,7 @@ export class RewardSchemesComponent implements OnInit {
       cancelButtonText: 'No, keep it'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.apiRequestService.delete(this.apiUrls.deleteRewardScheme + rewardSchemeId).subscribe({
+        this.apiRequestService.delete(this.apiUrls.deleteRewardScheme + rewardSchemeId).pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
             this.loadRewardSchemes();
             Swal.fire('Deleted!', 'The reward scheme has been successfully removed.', 'success');
@@ -178,7 +181,7 @@ export class RewardSchemesComponent implements OnInit {
       cancelButtonText: 'No, keep it',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.apiRequestService.update(this.apiUrls.updateRewardScheme + rewardScheme._id, rewardScheme).subscribe((response) => {
+        this.apiRequestService.update(this.apiUrls.updateRewardScheme + rewardScheme._id, rewardScheme).pipe(takeUntil(this.destroy$)).subscribe((response) => {
           if (response) {
             this.timestamp = new Date().getTime();
             this.loadRewardSchemes();

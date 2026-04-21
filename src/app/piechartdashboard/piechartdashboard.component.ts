@@ -8,6 +8,8 @@ import { ApiUrlsService } from "../services/api-urls.service";
 import { AuthService } from "../services/auth.service";
 import { Router } from '@angular/router';
 import { ProductDataListComponent } from '../product-data-list/product-data-list.component';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 interface Metric {
   name: string;
@@ -27,7 +29,7 @@ interface Product {
   templateUrl: './piechartdashboard.component.html',
   styleUrls: ['./piechartdashboard.component.css']
 })
-export class PiechartdashboardComponent implements OnInit {
+export class PiechartdashboardComponent extends Unsubscribable implements OnInit {
   Highcharts: typeof Highcharts = Highcharts;
   chartOptionsColumn: Highcharts.Options = {};
   drilldownChartOptions: Highcharts.Options = {};
@@ -48,6 +50,7 @@ export class PiechartdashboardComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {
+    super();
     this.currentUser = this.AuthService.currentUserValue;
   }
 
@@ -60,7 +63,7 @@ export class PiechartdashboardComponent implements OnInit {
 }
 
   loadMainChart(sortByMetricName: string): void {
-    this.apiRequestService.getBatchStatistics().subscribe({
+    this.apiRequestService.getBatchStatistics().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         const products: Product[] = res.products || [];
         const metrics: Metric[] = res.metrics || [];
@@ -166,7 +169,7 @@ export class PiechartdashboardComponent implements OnInit {
   onProductClick(index: number, productId: string, productName: string): void {
     this.selectedProductName = productName;
 
-    this.apiRequestService.getBatchTimeline(productId).subscribe({
+    this.apiRequestService.getBatchTimeline(productId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         const months: string[] = res.months || [];
         const metrics: Metric[] = res.metrics || [];

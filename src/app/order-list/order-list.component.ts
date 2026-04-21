@@ -3,6 +3,8 @@ import { ApiRequestService } from '../services/api-request.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-order-list',
@@ -11,7 +13,7 @@ import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './order-list.component.html',
   styleUrl: './order-list.component.css'
 })
-export class OrderListComponent {
+export class OrderListComponent extends Unsubscribable {
   orders: any[] = [];
   currentPage: number = 1;
   limit: number = 10;
@@ -19,7 +21,7 @@ export class OrderListComponent {
   limitOptions: number[] = [5, 10, 20, 50];
   isLoading: boolean = false;
 
-  constructor(private apiRequestService: ApiRequestService) {}
+  constructor(private apiRequestService: ApiRequestService) { super(); }
 
   ngOnInit(): void {
     this.loadOrders();
@@ -27,7 +29,7 @@ export class OrderListComponent {
 
   loadOrders(): void {
     this.isLoading = true;
-    this.apiRequestService.getAllOrders(this.currentPage, this.limit).subscribe(
+    this.apiRequestService.getAllOrders(this.currentPage, this.limit).pipe(takeUntil(this.destroy$)).subscribe(
       (response) => {
         this.orders = response.orders;
         console.log(this.orders , '--------------')

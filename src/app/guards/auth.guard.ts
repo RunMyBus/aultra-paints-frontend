@@ -13,19 +13,18 @@ export class AuthGuard implements CanActivate {
   }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-    const currentAccessToken = this.authService.currentUserValue;
+    const authenticated = this.authService.isAuthenticated();
 
-    // If token exists and user tries to access login, redirect to dashboard
-    if (state.url === '/login' && currentAccessToken && this.authService.isAuthenticated()) {
+    // Authenticated user hitting /login: redirect home.
+    if (state.url === '/login' && authenticated) {
       this.router.navigate(['/']);
       return false;
     }
 
-    if (currentAccessToken && this.authService.isAuthenticated()) {
-      return true; // Token exists, allow access to protected routes
+    if (authenticated) {
+      return true;
     }
 
-    // Redirect to login if no valid token
     this.router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
     return false;
   }

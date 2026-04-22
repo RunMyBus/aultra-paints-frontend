@@ -38,11 +38,49 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  public isAuthenticated(): string | null {
-    if (this.isLocalStorageAvailable()) {
-      return JSON.parse(localStorage.getItem('authToken') || 'null');
+  public isAuthenticated(): any | null {
+    if (!this.isLocalStorageAvailable()) return null;
+    const stored = JSON.parse(localStorage.getItem('authToken') || 'null');
+    if (!stored) return null;
+    // Authenticated only when the bearer token is present and unexpired.
+    if (this.isTokenExpired(stored.token)) {
+      this.clearStoredAuth();
+      return null;
     }
-    return null;
+    return stored;
+  }
+
+  // Best-effort JWT exp check. Unverified signature is OK: the server is
+  // the source of truth; this check is only to avoid shipping a known-stale
+  // token on UI transitions.
+  public isTokenExpired(token?: string): boolean {
+    const jwt = token || this.currentUserValue?.token;
+    if (!jwt || typeof jwt !== 'string') return true;
+    const parts = jwt.split('.');
+    if (parts.length !== 3) return false; // Not a JWT we can introspect — let the server decide.
+    try {
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (typeof payload.exp !== 'number') return false;
+      return payload.exp * 1000 < Date.now();
+    } catch {
+      return true;
+    }
+  }
+
+  public getAccountType(): string | null {
+    return this.currentUserValue?.accountType || null;
+  }
+
+  public hasRole(...roles: string[]): boolean {
+    const accountType = this.getAccountType();
+    return !!accountType && roles.includes(accountType);
+  }
+
+  private clearStoredAuth(): void {
+    if (this.isLocalStorageAvailable()) {
+      localStorage.removeItem('authToken');
+    }
+    this.currentUserSubject.next(null);
   }
 
 

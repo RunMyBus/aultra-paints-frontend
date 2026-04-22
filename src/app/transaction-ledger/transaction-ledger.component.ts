@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
 import { ApiRequestService } from '../services/api-request.service';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-transaction-ledger',
@@ -11,7 +13,7 @@ import { ApiRequestService } from '../services/api-request.service';
   templateUrl: './transaction-ledger.component.html',
   styleUrls: ['./transaction-ledger.component.css']
 })
-export class TransactionLedgerComponent {
+export class TransactionLedgerComponent extends Unsubscribable {
   transactions: any[] = [];
   currentPage: number = 1;
   limit: number = 10;
@@ -20,7 +22,7 @@ export class TransactionLedgerComponent {
   limitOptions: number[] = [5, 10, 20, 50];
   isLoading: boolean = false;
 
-  constructor(private apiRequestService: ApiRequestService) {}
+  constructor(private apiRequestService: ApiRequestService) { super(); }
 
   ngOnInit(): void {
     this.loadTransactions();
@@ -31,7 +33,7 @@ export class TransactionLedgerComponent {
 
     const payload = { page: this.currentPage, limit: this.limit };
 
-    this.apiRequestService.getTransactionLedger(payload).subscribe({
+    this.apiRequestService.getTransactionLedger(payload).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         this.transactions = response.transactions || [];
         this.totalTransactions = response.pagination?.totalTransactions || 0;
@@ -68,78 +70,31 @@ export class TransactionLedgerComponent {
     ? `CreditNote-${uniqueCode}.pdf`
     : `CreditNote.pdf`;
 
-  this.apiRequestService.downloadTransactionLedgerPDF(transactionId).subscribe({
+  // Guard for SSR: window/document are absent on the server.
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  this.apiRequestService.downloadTransactionLedgerPDF(transactionId).pipe(takeUntil(this.destroy$)).subscribe({
     next: (pdfBlob) => {
+      // Build a blob URL and open it directly in a new tab — the browser's
+      // native PDF viewer handles preview + download. No document.write, no
+      // inline <script>, no popup template that can be XSS-abused.
       const blob = new Blob([pdfBlob], { type: 'application/pdf' });
       const blobUrl = window.URL.createObjectURL(blob);
 
-      //Open Preview Tab
-      const previewTab = window.open('', '_blank');
-      if (!previewTab) {
-        alert('Please allow popups for this site to preview PDF.');
-        return;
+      const opened = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      if (!opened) {
+        // Popup blocked — fall back to a silent download.
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
 
-      // Simple Preview Page with one download button
-      // Use JSON.stringify to safely embed values into the generated HTML/JS
-      previewTab.document.write(`
-        <html>
-          <head>
-            <title>Credit Note Preview</title>
-            <style>
-              body {
-                margin: 0;
-                font-family: Arial, sans-serif;
-                background: #f4f4f4;
-              }
-              .header {
-                display: flex;
-                justify-content: flex-end;
-                background-color: #28a745;
-                padding: 10px 20px;
-              }
-              .header button {
-                background-color: #fff;
-                color: #28a745;
-                border: none;
-                border-radius: 4px;
-                font-size: 14px;
-                font-weight: 600;
-                padding: 8px 14px;
-                cursor: pointer;
-                transition: all 0.2s ease-in-out;
-              }
-              .header button:hover {
-                background-color: #d4edda;
-              }
-              iframe {
-                width: 100%;
-                height: 94vh;
-                border: none;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <button id="downloadBtn">⬇ Download PDF</button>
-            </div>
-            <iframe src=${JSON.stringify(blobUrl)}></iframe>
-            <script>
-              // embed safe string literals for blobUrl and fileName
-              const _blobUrl = ${JSON.stringify(blobUrl)};
-              const _fileName = ${JSON.stringify(fileName)};
-              document.getElementById('downloadBtn').addEventListener('click', function() {
-                const a = document.createElement('a');
-                a.href = _blobUrl;
-                a.download = _fileName;
-                a.click();
-              });
-            </script>
-          </body>
-        </html>
-      `);
-
-      previewTab.document.close();
+      // Revoke the URL after a delay so the opened tab has time to load.
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60_000);
     },
     error: (err) => {
       console.error('Failed to preview or download PDF:', err);

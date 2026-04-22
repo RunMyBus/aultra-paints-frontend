@@ -7,6 +7,8 @@ import {ApiUrlsService} from "../services/api-urls.service";
 import {ApiRequestService} from "../services/api-request.service";
 import {Router} from "@angular/router";
 import Swal from "sweetalert2";
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-create-batch',
@@ -15,7 +17,7 @@ import Swal from "sweetalert2";
   templateUrl: './create-batch.component.html',
   styleUrl: './create-batch.component.css'
 })
-export class CreateBatchComponent {
+export class CreateBatchComponent extends Unsubscribable {
     branchName: string = '';
      ProductName: any = null;  
   Brand: any = null; 
@@ -38,11 +40,12 @@ export class CreateBatchComponent {
 
 
     constructor(private ApiUrls: ApiUrlsService, private ApiRequest: ApiRequestService, private router: Router,) {
+        super();
     }
 
     ngOnInit() {
     // Fetch all brands initially
-    this.ApiRequest.getAll(this.ApiUrls.getAllBrands).subscribe(
+    this.ApiRequest.getAll(this.ApiUrls.getAllBrands).pipe(takeUntil(this.destroy$)).subscribe(
       (brands: any[]) => {
         this.brandData = brands;
       },
@@ -53,7 +56,7 @@ export class CreateBatchComponent {
     );
 
     // Fetch coupon series as before
-    this.ApiRequest.getCouponSeries(this.ApiUrls.couponSeries).subscribe(
+    this.ApiRequest.getCouponSeries(this.ApiUrls.couponSeries).pipe(takeUntil(this.destroy$)).subscribe(
       (data: any[]) => {
         this.couponSeriesList = data.map(series => series.name);
       },
@@ -68,7 +71,7 @@ export class CreateBatchComponent {
  onBrandChange() {
   console.log('Selected Brand ID:', this.Brand);
   if (this.Brand) {
-   this.ApiRequest.getAll(this.ApiUrls.getAllProductsForSelect + this.Brand).subscribe(
+   this.ApiRequest.getAll(this.ApiUrls.getAllProductsForSelect + this.Brand).pipe(takeUntil(this.destroy$)).subscribe(
   (response: any[]) => {
     this.products = response;
   },
@@ -186,7 +189,7 @@ export class CreateBatchComponent {
             cancelButtonText: 'No, cancel'
         }).then((result) => {
             if (result.isConfirmed) {
-                this.ApiRequest.create(this.ApiUrls.createBatch, newBranch).subscribe(
+                this.ApiRequest.create(this.ApiUrls.createBatch, newBranch).pipe(takeUntil(this.destroy$)).subscribe(
                     (response: any) => {
                         console.log('Branch created successfully:', response.message);
                         this.errorEmptyStr = '';

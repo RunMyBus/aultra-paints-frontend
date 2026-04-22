@@ -9,6 +9,8 @@ import { NgSelectComponent } from '@ng-select/ng-select';
 import Swal from "sweetalert2";
 import { NgbPagination } from '@ng-bootstrap/ng-bootstrap';
 import * as XLSX from 'xlsx';
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 
 @Component({
@@ -18,7 +20,7 @@ import * as XLSX from 'xlsx';
   templateUrl: './batch-list.component.html',
   styleUrl: './batch-list.component.css'
 })
-export class BatchListComponent {
+export class BatchListComponent extends Unsubscribable {
 branches: any[] = [];
 currentPage = 1;
 totalBranches = 0;
@@ -43,12 +45,13 @@ limitOptions = [10, 20, 50, 100];  // Available page size options
                 private router: Router,
                 private ApiUrls: ApiUrlsService,
                 private apiRequest: ApiRequestService) {
+        super();
     }
 
   ngOnInit(): void {
     this.loadBranches();
-    this.apiRequest.getAll(this.ApiUrls.getAllBrands).subscribe((response: any) => {
-        this.brands = response; 
+    this.apiRequest.getAll(this.ApiUrls.getAllBrands).pipe(takeUntil(this.destroy$)).subscribe((response: any) => {
+        this.brands = response;
     });
 }
 
@@ -56,7 +59,7 @@ limitOptions = [10, 20, 50, 100];  // Available page size options
 
     // Method to load branches with pagination
   loadBranches(page: number = this.currentPage, limit: number = this.limit): void {
-    this.apiRequest.post(this.ApiUrls.getBatches, { page, limit, searchQuery: this.searchQuery }).subscribe((response: any) => {
+    this.apiRequest.post(this.ApiUrls.getBatches, { page, limit, searchQuery: this.searchQuery }).pipe(takeUntil(this.destroy$)).subscribe((response: any) => {
       this.branches = response.branches;
       this.totalBranches = response.total; 
     }, (error) => {
@@ -75,7 +78,7 @@ limitOptions = [10, 20, 50, 100];  // Available page size options
 
       onSearch(): void {
         if (this.searchQuery.trim() !== '') {
-          this.apiRequest.searchBranch(this.ApiUrls.searchBranch, this.searchQuery).subscribe(
+          this.apiRequest.searchBranch(this.ApiUrls.searchBranch, this.searchQuery).pipe(takeUntil(this.destroy$)).subscribe(
             (response) => {
               this.branches = [response];
               this.totalBranches = 1;
@@ -137,7 +140,7 @@ limitOptions = [10, 20, 50, 100];  // Available page size options
         }).then((result) => {
             if (result.isConfirmed) {
                 // Proceed with updating the batch
-                this.apiRequest.update(this.ApiUrls.updateBatch + this.selectedBranch._id, this.selectedBranch).subscribe(
+                this.apiRequest.update(this.ApiUrls.updateBatch + this.selectedBranch._id, this.selectedBranch).pipe(takeUntil(this.destroy$)).subscribe(
                     (response) => {
                         this.loadBranches(); // Reload the branches list
                         this.closeUpdateModal(); // Close the modal
@@ -158,7 +161,7 @@ limitOptions = [10, 20, 50, 100];  // Available page size options
     
 
     onDelete(id: string): void {
-        this.apiRequest.getCouponSeries(this.ApiUrls.branchDeletedAffectedCouponsCount + id).subscribe((response) => {
+        this.apiRequest.getCouponSeries(this.ApiUrls.branchDeletedAffectedCouponsCount + id).pipe(takeUntil(this.destroy$)).subscribe((response) => {
             console.log(response)
             let text = response.message;
             Swal.fire({
@@ -170,7 +173,7 @@ limitOptions = [10, 20, 50, 100];  // Available page size options
                 cancelButtonText: 'No, keep it'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    this.apiRequest.delete(this.ApiUrls.deleteBatch + id).subscribe((response) => {
+                    this.apiRequest.delete(this.ApiUrls.deleteBatch + id).pipe(takeUntil(this.destroy$)).subscribe((response) => {
                         this.loadBranches();
                     }, (error) => {
                         console.error('Error deleting branch:', error);
@@ -188,7 +191,7 @@ limitOptions = [10, 20, 50, 100];  // Available page size options
     }
    
    getProducts(): void {
-    this.apiRequest.getAll(this.ApiUrls.getAllProducts).subscribe((response: any) => {
+    this.apiRequest.getAll(this.ApiUrls.getAllProducts).pipe(takeUntil(this.destroy$)).subscribe((response: any) => {
         this.productData = response;
     });
 }

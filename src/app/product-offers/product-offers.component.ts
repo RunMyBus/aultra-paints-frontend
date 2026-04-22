@@ -14,6 +14,8 @@ import Swal from "sweetalert2";
 import {ApiUrlsService} from "../services/api-urls.service";
 import {FormsModule, NgForm} from "@angular/forms";
 import {CommonModule, DatePipe} from "@angular/common";
+import { Unsubscribable } from '../shared/unsubscribable';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-product-offers',
@@ -23,7 +25,7 @@ import {CommonModule, DatePipe} from "@angular/common";
   styleUrl: './product-offers.component.css',
   providers: [DatePipe]
 })
-export class ProductOffersComponent implements OnInit {
+export class ProductOffersComponent extends Unsubscribable implements OnInit {
   @ViewChild('productOfferForm') productOfferForm!: NgForm;
   productOffers: any[] = [];
   currentOffer: any = {
@@ -64,7 +66,7 @@ districtList: Array<{ districtName: string; districtId: string }> = [];
 
 priceValue: number | null = null;
 priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All', price: 0 }];
-  constructor(private apiRequestService: ApiRequestService, private modalService: NgbModal, public apiUrls: ApiUrlsService, private datePipe: DatePipe) {}
+  constructor(private apiRequestService: ApiRequestService, private modalService: NgbModal, public apiUrls: ApiUrlsService, private datePipe: DatePipe) { super(); }
 
   ngOnInit(): void {
     this.loadProductOffers();
@@ -73,7 +75,7 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
 
   loadProductOffers() {
     this.productOffers = []; 
-    this.apiRequestService.create(this.apiUrls.searchProductOffers, this.productOffersQuery).subscribe((response: any) => {
+    this.apiRequestService.create(this.apiUrls.searchProductOffers, this.productOffersQuery).pipe(takeUntil(this.destroy$)).subscribe((response: any) => {
       this.productOffers = response.data;
       this.totalProductOffers = response.total;  
       this.totalPages = Math.ceil(this.totalProductOffers / this.productOffersQuery.limit); 
@@ -235,6 +237,7 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
       if (this.currentOffer._id) {
         this.apiRequestService
           .updateWithImage(this.apiUrls.updateProductOffer + this.currentOffer._id, formData)
+          .pipe(takeUntil(this.destroy$))
           .subscribe(
             (response) => {
               if (response) {
@@ -259,6 +262,7 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
       } else {
         this.apiRequestService
           .createWithImage(this.apiUrls.createProductOffer, formData)
+          .pipe(takeUntil(this.destroy$))
           .subscribe(
             (response) => {
               if (response) {
@@ -295,7 +299,7 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
       cancelButtonText: 'No, keep it'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.apiRequestService.delete(this.apiUrls.deleteProductOffer + offerId).subscribe({
+        this.apiRequestService.delete(this.apiUrls.deleteProductOffer + offerId).pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
             this.loadProductOffers();
             Swal.fire('Offer Deleted!', 'The offer has been successfully removed.', 'success');
@@ -366,7 +370,7 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
   
         console.log('Update data being sent:', updateData);
   
-        this.apiRequestService.update(this.apiUrls.updateProductOffer + offer._id, updateData).subscribe({
+        this.apiRequestService.update(this.apiUrls.updateProductOffer + offer._id, updateData).pipe(takeUntil(this.destroy$)).subscribe({
           next: (response) => {
             if (response) {
               this.timestamp = new Date().getTime();

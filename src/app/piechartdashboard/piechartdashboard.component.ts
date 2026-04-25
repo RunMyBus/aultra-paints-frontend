@@ -217,7 +217,9 @@ export class PiechartdashboardComponent extends Unsubscribable implements OnInit
     });
   }
 
-  getSeriesColor(series: Highcharts.SeriesOptionsType | Highcharts.UnknownSeriesOptions): string {
+  // Accepts the broader union Highcharts now infers in templates (includes
+  // UnknownSeriesOptions) — narrows internally via the existing cast.
+  getSeriesColor(series: unknown): string {
     const color = (series as Highcharts.SeriesColumnOptions).color;
     return typeof color === 'string' ? color : '#000000';
   }

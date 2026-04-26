@@ -28,15 +28,16 @@ import { takeUntil } from 'rxjs';
 export class ProductOffersComponent extends Unsubscribable implements OnInit {
   @ViewChild('productOfferForm') productOfferForm!: NgForm;
   productOffers: any[] = [];
+  salesExecutives: any[] = [];
   currentOffer: any = {
     productOfferImageUrl: '',
     productOfferDescription: '',
     validUntil: '',
     productOfferStatus: 'Active',
-    cashback: 0,        
-  redeemPoints: 0,
-  price: ''
-
+    cashback: 0,
+    redeemPoints: 0,
+    price: '',
+    routeScheme: []
   };
 
   productOffersQuery: any = {
@@ -71,6 +72,38 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
   ngOnInit(): void {
     this.loadProductOffers();
     this.getAllStatesZonesAndDistricts();
+    this.loadSalesExecutives();
+  }
+
+  // Accepts a string (legacy) or string[] (current) and returns display names joined by ', '
+  getSeName(routeScheme: string | string[] | null): string {
+    if (!routeScheme) return '';
+    const mobiles = Array.isArray(routeScheme) ? routeScheme : [routeScheme];
+    return mobiles
+      .map(mobile => {
+        const se = this.salesExecutives.find(s => s.mobile === mobile);
+        return se ? se.name : mobile;
+      })
+      .join(', ');
+  }
+
+  /** @deprecated kept for call-site compatibility — use getSeName */
+  _getSeName(mobile: string): string {
+    const se = this.salesExecutives.find(s => s.mobile === mobile);
+    return se ? se.name : mobile;
+  }
+
+  // Normalises legacy string or new string[] into always-an-array for *ngFor
+  asArray(value: string | string[] | null | undefined): string[] {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+  }
+
+  loadSalesExecutives() {
+    this.apiRequestService.getAllSalesExecutives().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response: any) => { this.salesExecutives = response.data || response; },
+      error: (err) => console.error('Error loading sales executives:', err)
+    });
   }
 
   loadProductOffers() {
@@ -154,6 +187,7 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
         productOfferStatus: 'Active',
         cashback: 0,
         redeemPoints: 0,
+        routeScheme: []
       };
   
       // Set default date
@@ -231,8 +265,9 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
       formData.append('productOfferStatus', this.currentOffer.productOfferStatus);
       formData.append('cashback', this.currentOffer.cashback.toString());
       formData.append('redeemPoints', this.currentOffer.redeemPoints.toString());
-      formData.append('price', JSON.stringify(this.currentOffer.price)); 
-  
+      formData.append('price', JSON.stringify(this.currentOffer.price));
+      formData.append('routeScheme', JSON.stringify(this.currentOffer.routeScheme || []));
+
       // Update or Create Offer
       if (this.currentOffer._id) {
         this.apiRequestService

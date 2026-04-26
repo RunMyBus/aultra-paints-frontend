@@ -27,6 +27,9 @@ export class ApiUrlsService {
    // Sales Executives endpoint
    SalesExecutives = 'users/sales-executives';
 
+   // All active dealers (no pagination — for dropdowns)
+   getAllDealers = 'users/dealers';
+
    //api urls for unverifed users
    getUnverifiedUsers = 'users/unverified-users';
 
@@ -120,6 +123,11 @@ getFocusEntities = 'products/focus-entities';
 //order
 checkoutUrl = 'order/create';
 getAllOrders = '/order/orders';
+
+// Credit Notes
+issueCreditNote      = 'creditNotes/issue';
+listCreditNotes      = 'creditNotes/list';
+downloadCreditNotePDF = 'creditNotes/pdf/';
 
 //piechartsdashboard
 batchStatistics = 'chart/batch-statistics';

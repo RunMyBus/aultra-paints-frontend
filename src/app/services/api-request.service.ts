@@ -236,6 +236,13 @@ export class ApiRequestService {
 
 
 
+ // All active dealers for dropdowns (no pagination cap)
+ getAllDealers(): Observable<any> {
+   return this.http.get(this.ApiUrls.mainUrl + this.ApiUrls.getAllDealers).pipe(
+     map((res: any) => res)
+   );
+ }
+
  // Method to get all sales executives
  getAllSalesExecutives(): Observable<any> {
     return this.http.get(this.ApiUrls.mainUrl + this.ApiUrls.SalesExecutives).pipe(
@@ -404,8 +411,25 @@ updateTransactionLedger(id: string, data: any) {
 downloadTransactionLedgerPDF(transactionId: string): Observable<Blob> {
   const url = this.ApiUrls.mainUrl + this.ApiUrls.downloadTransactionLedgerPDF + transactionId;
   return this.http.get(url, {
-    responseType: 'blob', 
+    responseType: 'blob',
   });
+}
+
+issueCreditNote(data: any): Observable<any> {
+  return this.http.post(this.ApiUrls.mainUrl + this.ApiUrls.issueCreditNote, data)
+    .pipe(map((res: any) => res));
+}
+
+listCreditNotes(data: any): Observable<any> {
+  return this.http.post(this.ApiUrls.mainUrl + this.ApiUrls.listCreditNotes, data)
+    .pipe(map((res: any) => res));
+}
+
+downloadCreditNotePDF(creditNoteNumber: string): Observable<Blob> {
+  return this.http.get(
+    this.ApiUrls.mainUrl + this.ApiUrls.downloadCreditNotePDF + creditNoteNumber,
+    { responseType: 'blob' }
+  );
 }
 
 

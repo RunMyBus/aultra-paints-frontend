@@ -24,6 +24,7 @@ import { ProductDataListComponent } from './product-data-list/product-data-list.
 import { CreateProductComponent } from './create-product/create-product.component';
 import { EditProductComponent } from './edit-product/edit-product.component';
 import { TransactionLedgerComponent } from './transaction-ledger/transaction-ledger.component';
+import { CreditNotesComponent } from './credit-notes/credit-notes.component';
 
 const ADMIN = ['SuperUser'];
 const STAFF = ['SuperUser', 'SalesExecutive'];
@@ -54,6 +55,7 @@ export const routes: Routes = [
             {path: 'create-product', component: CreateProductComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
             {path: 'edit-product', component: EditProductComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
             {path: 'transaction-ledger', component: TransactionLedgerComponent},
+            {path: 'credit-notes', component: CreditNotesComponent, canActivate: [RoleGuard], data: { roles: ADMIN }},
         ]
 
     },

@@ -1,0 +1,32 @@
+/* Make every card the same height so action bars line up */
+.product-offers-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Stretch the body to fill remaining card height */
+.product-offers-card .card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Push the action row (Active / toggle / edit / delete) to the bottom */
+.product-offers-card .card-body .mt-auto {
+  margin-top: auto;
+}
+
+/* Route-scheme badges: wrap long SE names inside the card */
+.route-scheme-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 0;
+}
+
+.route-scheme-badges .badge {
+  white-space: normal;
+  word-break: break-word;
+  text-align: left;
+  line-height: 1.3;
+}

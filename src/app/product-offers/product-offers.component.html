@@ -27,6 +27,7 @@
                 <p class="card-text" *ngIf="offer.cashback">Cashback: {{ offer.cashback}}</p>
                 <p class="card-text" *ngIf="offer.redeemPoints">Redeem Points: {{ offer.redeemPoints }}</p>
 
+
                 <div class="mt-auto d-flex justify-content-between align-items-center">
                     <span class="badge rounded-pill bg-success me-2" [class.bg-danger]="offer.productOfferStatus === 'Inactive'">{{ offer.productOfferStatus }}</span>
                     <div class="form-check form-switch">
@@ -124,6 +125,24 @@
                         <div *ngIf="addDescriptionInput.invalid && (addDescriptionInput.dirty || addDescriptionInput.touched)" class="text-danger">
                             <div *ngIf="addDescriptionInput.errors?.['required']">Offer Text is required.</div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Route Scheme -->
+                <div class="row">
+                    <div class="col-sm-12 mb-3 form-group">
+                        <label class="form-label" for="routeScheme">Route Scheme (Salesman)</label>
+                        <ng-select
+                            [items]="salesExecutives"
+                            bindLabel="name"
+                            bindValue="mobile"
+                            [(ngModel)]="currentOffer.routeScheme"
+                            name="routeScheme"
+                            placeholder="All Dealers (no filter)"
+                            [multiple]="true"
+                            [clearable]="true"
+                            [searchable]="true"
+                        ></ng-select>
                     </div>
                 </div>
 

@@ -14,7 +14,7 @@
           <th scope="col">Narration</th>
           <th scope="col">UniqueCode</th>
            <th scope="col">Dealer Name</th> 
-          <th scope="col">Amount</th>
+          <th scope="col">Value</th>
           <th scope="col">Balance</th>
           <th scope="col">Date</th>
           <th scope="col">Action</th> 
@@ -27,8 +27,8 @@
           <td>{{ transaction.narration }}</td>
           <td>{{ transaction.uniqueCode }}</td>
           <td>{{ transaction.dealerName || '-' }}</td>
-          <td>{{ transaction.amount }}</td>
-          <td>{{ transaction.balance }}</td>
+          <td>{{ transaction.pointsCredited ?? transaction.cashReward ?? '-' }}</td>
+          <td>{{ transaction.pointsBalance ?? transaction.cashBalance ?? '-' }}</td>
           <td>{{ transaction.createdAt | date:'short' }}</td>
           <td>
   <button 

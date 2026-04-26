@@ -75,6 +75,14 @@
   </div>
 </li>
 
+<!-- Credit Notes -->
+<li class="nav-item" (click)="navigateTo('credit-notes')">
+  <div class="menu">
+    <i class="bx px-2 bx-receipt" style="font-size: 20px;" title="Credit Notes"></i>
+    <span *ngIf="!isSidebarCollapsed" style="border-left: 1px solid #ccc" class="px-2">Credit Notes</span>
+  </div>
+</li>
+
       <!-- CashFree Transactions -->
              <li class="nav-item" (click)="navigateTo('payouts')">
                 <div class="menu">

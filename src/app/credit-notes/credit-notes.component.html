@@ -1,0 +1,216 @@
+<div class="container-fluid container-mt shadow-sm">
+
+  <!-- Header -->
+  <div class="row mb-3">
+    <div class="col-sm-6">
+      <h4>Credit Notes</h4>
+    </div>
+    <div class="col-sm-6 d-flex justify-content-end">
+      <button class="btn btn-primary" (click)="openIssueModal(issueModal)">
+        <i class="bx bx-plus"></i> Issue Credit Note
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="row mb-3">
+    <div class="col-sm-3">
+      <ng-select
+        [items]="dealers"
+        bindLabel="name"
+        bindValue="_id"
+        [(ngModel)]="filters.userId"
+        placeholder="All Dealers"
+        [clearable]="true"
+        [searchable]="true"
+      ></ng-select>
+    </div>
+    <div class="col-sm-2">
+      <select class="form-select" [(ngModel)]="filters.balanceType">
+        <option value="">All Types</option>
+        <option value="rewardPoints">Reward Points</option>
+        <option value="cash">Cash</option>
+      </select>
+    </div>
+    <div class="col-sm-2">
+      <select class="form-select" [(ngModel)]="filters.status">
+        <option value="">All Statuses</option>
+        <option value="issued">Issued</option>
+        <option value="redeemed">Redeemed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="col-sm-2">
+      <input type="date" class="form-control" [(ngModel)]="filters.dateFrom" placeholder="From date">
+    </div>
+    <div class="col-sm-2">
+      <input type="date" class="form-control" [(ngModel)]="filters.dateTo" placeholder="To date">
+    </div>
+    <div class="col-sm-1 d-flex gap-1">
+      <button class="btn btn-secondary btn-sm" (click)="applyFilters()" title="Apply filters">
+        <i class="bx bx-search"></i>
+      </button>
+      <button class="btn btn-outline-secondary btn-sm" (click)="clearFilters()" title="Clear filters">
+        <i class="bx bx-reset"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <table class="table table-hover">
+      <thead class="thead-dark">
+        <tr>
+          <th>S.No</th>
+          <th>Credit Note #</th>
+          <th>Dealer Name</th>
+          <th>Balance Type</th>
+          <th>Amount</th>
+          <th>Narration</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cn of creditNotes; let i = index">
+          <td>{{ (currentPage - 1) * limit + i + 1 }}</td>
+          <td>{{ cn.creditNoteNumber }}</td>
+          <td>{{ cn.dealerName }}</td>
+          <td>
+            <span class="badge" [ngClass]="cn.balanceType === 'rewardPoints' ? 'bg-primary' : 'bg-success'">
+              {{ cn.balanceType === 'rewardPoints' ? 'Reward Points' : 'Cash' }}
+            </span>
+          </td>
+          <td>{{ cn.amount }}</td>
+          <td>{{ cn.narration || '-' }}</td>
+          <td>
+            <span class="badge"
+              [ngClass]="{
+                'bg-success': cn.status === 'issued',
+                'bg-info text-dark': cn.status === 'redeemed',
+                'bg-secondary': cn.status === 'cancelled'
+              }">
+              {{ cn.status | titlecase }}
+            </span>
+          </td>
+          <td>{{ cn.createdAt | date:'short' }}</td>
+          <td>
+            <button class="btn btn-sm btn-success" (click)="downloadPDF(cn.creditNoteNumber)" title="Download PDF">
+              <i class="bx bx-download"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="creditNotes.length === 0 && !isLoading">
+          <td colspan="9" class="text-center">No credit notes found</td>
+        </tr>
+        <tr *ngIf="isLoading">
+          <td colspan="9" class="text-center">Loading...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="row">
+    <div class="col-sm-12 text-right">
+      <div class="d-flex justify-content-end align-items-center">
+        <select [(ngModel)]="limit" (change)="handleLimitChange()"
+                class="form-select mx-2" style="width: 100px; margin-bottom: 16px;">
+          <option *ngFor="let opt of limitOptions" [value]="opt">{{ opt }}</option>
+        </select>
+        <ngb-pagination
+          class="mx-2"
+          [(page)]="currentPage"
+          [pageSize]="limit"
+          [collectionSize]="total"
+          [boundaryLinks]="true"
+          (pageChange)="handlePageChange($event)"
+          [maxSize]="5">
+        </ngb-pagination>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Issue Credit Note Modal -->
+<ng-template #issueModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Issue Credit Note</h5>
+    <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <form #issueForm="ngForm">
+
+      <!-- Dealer picker -->
+      <div class="mb-3">
+        <label class="form-label">Dealer <span class="text-danger">*</span></label>
+        <ng-select
+          [items]="dealers"
+          bindLabel="name"
+          bindValue="_id"
+          [(ngModel)]="issueData.userId"
+          name="userId"
+          placeholder="Select dealer"
+          [clearable]="false"
+          [searchable]="true"
+          required
+          (change)="onDealerChange()"
+          #userId="ngModel">
+        </ng-select>
+        <div *ngIf="submitted && userId.invalid" class="text-danger small mt-1">Dealer is required</div>
+      </div>
+
+      <!-- Live balance preview -->
+      <div *ngIf="selectedDealer" class="alert alert-info py-2 mb-3">
+        <strong>{{ selectedDealer.name }}</strong> current balances:
+        <span class="ms-2">Reward Points: <strong>{{ selectedDealer.rewardPoints ?? 0 }}</strong></span>
+        <span class="ms-3">Cash: <strong>{{ selectedDealer.cash ?? 0 }}</strong></span>
+      </div>
+
+      <!-- Balance type -->
+      <div class="mb-3">
+        <label class="form-label">Balance Type <span class="text-danger">*</span></label>
+        <div class="d-flex gap-4">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" id="typePoints"
+              [(ngModel)]="issueData.balanceType" name="balanceType"
+              value="rewardPoints" required>
+            <label class="form-check-label" for="typePoints">Reward Points</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" id="typeCash"
+              [(ngModel)]="issueData.balanceType" name="balanceType"
+              value="cash" required>
+            <label class="form-check-label" for="typeCash">Cash</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amount -->
+      <div class="mb-3">
+        <label class="form-label">Amount <span class="text-danger">*</span></label>
+        <input type="number" class="form-control" name="amount"
+          [(ngModel)]="issueData.amount" min="1" step="1"
+          placeholder="Enter amount" required #amount="ngModel">
+        <div *ngIf="submitted && amount.invalid" class="text-danger small mt-1">
+          Amount must be a positive integer
+        </div>
+      </div>
+
+      <!-- Narration -->
+      <div class="mb-3">
+        <label class="form-label">Narration (optional)</label>
+        <textarea class="form-control" name="narration"
+          [(ngModel)]="issueData.narration"
+          rows="2" maxlength="200"
+          placeholder="Reason or notes..."></textarea>
+      </div>
+
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-primary" (click)="submitIssue(modal)">Issue</button>
+  </div>
+</ng-template>

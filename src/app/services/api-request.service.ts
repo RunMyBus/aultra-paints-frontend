@@ -452,8 +452,24 @@ getFocusEntities(): Observable<any> {
     .pipe(map((res: any) => res));
 }
 
-      
-}   
+getFocusWarehouses(): Observable<any> {
+  return this.http
+    .get(this.ApiUrls.mainUrl + this.ApiUrls.getFocusWarehouses)
+    .pipe(map((res: any) => res));
+}
+
+getFocusBranches(): Observable<any> {
+  return this.http
+    .get(this.ApiUrls.mainUrl + this.ApiUrls.getFocusBranches)
+    .pipe(map((res: any) => res));
+}
+
+retryFocusSync(orderId: string): Observable<any> {
+  return this.http.post(this.ApiUrls.mainUrl + this.ApiUrls.retryFocusSync, { orderId })
+    .pipe(map((res: any) => res));
+}
+
+}
 
 
 

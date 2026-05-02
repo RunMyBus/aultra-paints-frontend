@@ -83,21 +83,19 @@
 
 <div class="container-fluid my-4">
   <!-- Pagination Controls -->
-  <div class="row">
-    <div class="col-sm-12 text-right">
-      <div class="d-flex justify-content-end">
-        <!-- Page Size Selector -->
-        <select [(ngModel)]="limit" (change)="handleLimitChange()" class="form-select mx-2"
-          style="width:100px; margin-bottom: 16px">
-          <option *ngFor="let limitOption of limitOptions" [value]="limitOption">{{ limitOption }}</option>
-        </select>
-
-        <ngb-pagination class="mx-2" [(page)]="productCatlogsQuery.page" [pageSize]="productCatlogsQuery.limit"
-          [collectionSize]="totalProductCatlogs" [boundaryLinks]="true" (pageChange)="handlePageChange($event)"
-          [maxSize]="5">
-        </ngb-pagination>
-      </div>
-    </div>
+  <div class="pagination-row">
+    <span class="page-size-label">Rows per page</span>
+    <select [(ngModel)]="limit" (change)="handleLimitChange()" class="form-select">
+      <option *ngFor="let limitOption of limitOptions" [value]="limitOption">{{ limitOption }}</option>
+    </select>
+    <ngb-pagination
+      [(page)]="productCatlogsQuery.page"
+      [pageSize]="productCatlogsQuery.limit"
+      [collectionSize]="totalProductCatlogs"
+      [boundaryLinks]="true"
+      (pageChange)="handlePageChange($event)"
+      [maxSize]="5">
+    </ngb-pagination>
   </div>
 </div>
 
@@ -209,28 +207,72 @@
         </li>
 
       </ul>
-      <!-- Entity Dropdown -->
-<div class="mt-3">
-  <label class="form-label fw-semibold">
-    Select Entity
-  </label>
+      <!-- Focus Fields -->
+      <div class="mt-3 d-flex flex-column gap-3">
 
-  <ng-select
-    [items]="focusEntities"
-    bindLabel="sName"
-    bindValue="iMasterId"
-    [(ngModel)]="selectedEntityId"
-    name="entityId"
-    placeholder="Select Entity"
-    [searchable]="true"
-    [clearable]="true">
-  </ng-select>
+        <!-- Entity -->
+        <div>
+          <label class="form-label fw-semibold mb-1">Select Entity</label>
+          <ng-select
+            [items]="focusEntities"
+            bindLabel="sName"
+            bindValue="iMasterId"
+            [(ngModel)]="selectedEntityId"
+            placeholder="Select Entity"
+            [searchable]="true"
+            [clearable]="true">
+          </ng-select>
+          <div *ngIf="submitted && !selectedEntityId" class="text-danger small mt-1">
+            Entity is required
+          </div>
+        </div>
 
-  <div *ngIf="submitted && !selectedEntityId"
-       class="text-danger small mt-1">
-    Entity is required
-  </div>
-</div>
+        <!-- Warehouse -->
+        <div>
+          <label class="form-label fw-semibold mb-1">Select Warehouse</label>
+          <ng-select
+            [items]="focusWarehouses"
+            bindLabel="sName"
+            bindValue="iMasterId"
+            [(ngModel)]="selectedWarehouseId"
+            placeholder="Select Warehouse"
+            [searchable]="true"
+            [clearable]="true">
+          </ng-select>
+          <div *ngIf="submitted && !selectedWarehouseId" class="text-danger small mt-1">
+            Warehouse is required
+          </div>
+        </div>
+
+        <!-- Branch -->
+        <div>
+          <label class="form-label fw-semibold mb-1">Select Branch</label>
+          <ng-select
+            [items]="focusBranches"
+            bindLabel="sName"
+            bindValue="iMasterId"
+            [(ngModel)]="selectedBranchId"
+            placeholder="Select Branch"
+            [searchable]="true"
+            [clearable]="true">
+          </ng-select>
+          <div *ngIf="submitted && !selectedBranchId" class="text-danger small mt-1">
+            Branch is required
+          </div>
+        </div>
+
+        <!-- Narration -->
+        <div>
+          <label class="form-label fw-semibold mb-1">Narration <span class="text-muted fw-normal">(optional)</span></label>
+          <textarea
+            class="form-control"
+            [(ngModel)]="narration"
+            placeholder="Enter narration..."
+            rows="2">
+          </textarea>
+        </div>
+
+      </div>
 
     </div>
 

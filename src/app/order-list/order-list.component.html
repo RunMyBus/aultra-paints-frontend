@@ -1,59 +1,203 @@
 <div class="container-fluid container-mt shadow-sm">
-  <div class="row mb-4">
-    <div class="col-sm-2">
-      <h4>Orders</h4>
-    </div>
-    <div class="col-sm-10 d-flex justify-content-end">
-    </div>
+
+  <!-- Header + filters -->
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <h5 class="mb-0 me-auto">Orders</h5>
+    <button class="btn btn-sm filter-btn"
+            [class.active]="statusFilter === ''"
+            (click)="setStatusFilter('')">All</button>
+    <button *ngFor="let s of statusOptions"
+            class="btn btn-sm filter-btn"
+            [class.active]="statusFilter === s"
+            (click)="setStatusFilter(s)">{{ s }}</button>
   </div>
 
-  <div class="table-wrapper">
-    <table class="table table-hover">
-      <thead class="thead-dark">
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-secondary" role="status"></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper" *ngIf="!isLoading">
+    <table class="table table-hover order-table">
+      <thead>
         <tr>
-          <th scope="col">S.NO</th>
-          <th scope="col">Order ID</th>
-          <th scope="col">Customer Name</th> 
-          <th scope="col">Status</th>
-          <th scope="col">Order Date</th>
-          <th scope="col">Total Amount</th>
+          <th>#</th>
+          <th>Order</th>
+          <th>Customer</th>
+          <th>Status</th>
+          <th>Focus Sync</th>
+          <th>Date</th>
+          <th class="text-end">Amount</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let order of orders; let i = index">
-          <td>{{ (currentPage - 1) * limit + i + 1 }}</td>
-          <td>{{ order.orderId }}</td>
-          <td>{{ order.createdBy.name }}</td>
-          <td>{{order.status}}</td>
-          <td>{{ order.createdAt | date: 'short' }}</td>
-          <td>{{ order.finalPrice | currency:'INR' }}</td>             
-        </tr>
-        <tr *ngIf="orders.length === 0">
-          <td class="text-center" colspan="6">No Records found</td>
+        <ng-container *ngFor="let order of filteredOrders; let i = index">
+
+          <!-- Summary row -->
+          <tr class="summary-row" (click)="toggleExpand(order.orderId)">
+            <td class="text-muted">{{ (currentPage - 1) * limit + i + 1 }}</td>
+
+            <td>
+              <div class="fw-semibold">{{ order.orderId }}</div>
+              <small *ngIf="order.focusOrderId" class="text-muted">
+                <i class="bx bx-link-alt"></i> {{ order.focusOrderId }}
+              </small>
+            </td>
+
+            <td>
+              <div>{{ order.createdBy?.name || '—' }}</div>
+              <small class="text-muted">{{ order.createdBy?.mobile }}</small>
+              <div *ngIf="order.dealerId && order.dealerId?._id !== order.createdBy?._id">
+                <small class="text-muted">For: {{ order.dealerId?.name }}</small>
+              </div>
+            </td>
+
+            <td>
+              <span class="badge" [ngClass]="getBadgeClass(order.status)">
+                {{ order.status }}
+              </span>
+            </td>
+
+            <td>
+              <span class="badge" [ngClass]="getFocusBadgeClass(order.focusSyncStatus)">
+                {{ order.focusSyncStatus || 'PENDING' }}
+              </span>
+            </td>
+
+            <td>{{ order.createdAt | date: 'dd MMM yyyy' }}</td>
+
+            <td class="text-end fw-semibold">
+              {{ order.finalPrice | currency:'INR':'symbol':'1.0-0' }}
+            </td>
+
+            <td class="text-center expand-toggle">
+              <i class="bx"
+                 [class.bx-chevron-down]="expandedOrderId !== order.orderId"
+                 [class.bx-chevron-up]="expandedOrderId === order.orderId"></i>
+            </td>
+          </tr>
+
+          <!-- Expanded detail row -->
+          <tr *ngIf="expandedOrderId === order.orderId" class="detail-row">
+            <td colspan="8">
+              <div class="detail-panel">
+
+                <!-- Items -->
+                <div class="detail-section">
+                  <div class="detail-label">ITEMS</div>
+                  <table class="table table-sm items-table mb-0">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Volume</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of order.items">
+                        <td>{{ item.productOfferDescription }}</td>
+                        <td>{{ item.volume || '—' }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-end">{{ item.productPrice | currency:'INR':'symbol':'1.0-0' }}</td>
+                        <td class="text-end fw-semibold">{{ itemSubtotal(item) | currency:'INR':'symbol':'1.0-0' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Financials + Meta -->
+                <div class="detail-meta-row">
+
+                  <!-- Price breakdown -->
+                  <div class="detail-section flex-grow-1">
+                    <div class="detail-label">AMOUNT</div>
+                    <div class="meta-kv">
+                      <span class="text-muted">Subtotal</span>
+                      <span>{{ order.totalPrice | currency:'INR':'symbol':'1.2-2' }}</span>
+                    </div>
+                    <div class="meta-kv">
+                      <span class="text-muted">GST</span>
+                      <span>{{ order.gstPrice | currency:'INR':'symbol':'1.2-2' }}</span>
+                    </div>
+                    <div class="meta-kv fw-semibold">
+                      <span>Total</span>
+                      <span>{{ order.finalPrice | currency:'INR':'symbol':'1.2-2' }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Focus details -->
+                  <div class="detail-section flex-grow-1">
+                    <div class="detail-label">FOCUS SYNC</div>
+                    <div class="meta-kv" *ngIf="order.focusOrderId">
+                      <span class="text-muted">Voucher No</span>
+                      <span class="fw-semibold">{{ order.focusOrderId }}</span>
+                    </div>
+                    <div class="meta-kv" *ngIf="order.focusDCInvoiceId?.length">
+                      <span class="text-muted">DC Invoices</span>
+                      <span>{{ order.focusDCInvoiceId.join(', ') }}</span>
+                    </div>
+                    <div *ngIf="order.focusSyncStatus === 'FAILED'" class="mt-2">
+                      <button class="btn btn-sm btn-outline-danger"
+                              [disabled]="isRetrying[order.orderId]"
+                              (click)="retryFocusSync($event, order)">
+                        <span *ngIf="isRetrying[order.orderId]"
+                              class="spinner-border spinner-border-sm me-1"></span>
+                        Retry Sync
+                      </button>
+                      <small *ngIf="retryMessage[order.orderId]"
+                             class="ms-2 text-muted">{{ retryMessage[order.orderId] }}</small>
+                    </div>
+                  </div>
+
+                  <!-- Order meta -->
+                  <div class="detail-section flex-grow-1">
+                    <div class="detail-label">DETAILS</div>
+                    <div class="meta-kv" *ngIf="order.narration">
+                      <span class="text-muted">Narration</span>
+                      <span>{{ order.narration }}</span>
+                    </div>
+                    <div class="meta-kv" *ngIf="order.dealerId?.name">
+                      <span class="text-muted">Dealer</span>
+                      <span>{{ order.dealerId?.name }}<span *ngIf="order.dealerId?.dealerCode" class="text-muted"> ({{ order.dealerId?.dealerCode }})</span></span>
+                    </div>
+                    <div class="meta-kv">
+                      <span class="text-muted">Placed by</span>
+                      <span>{{ order.createdBy?.name }} <span class="badge bg-light text-dark ms-1" style="font-size:10px">{{ order.createdBy?.accountType }}</span></span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </td>
+          </tr>
+
+        </ng-container>
+
+        <tr *ngIf="filteredOrders.length === 0">
+          <td colspan="8" class="text-center text-muted py-4">No orders found</td>
         </tr>
       </tbody>
     </table>
-  </div> 
-    
-     <!-- Pagination Controls -->
-  <div class="row">
-    <div class="col-sm-12 text-right">
-      <div class="d-flex justify-content-end">
-        <!-- Page Size Selector -->
-        <select [(ngModel)]="limit" (change)="handleLimitChange()" class="form-select mx-2" style="width:100px; margin-bottom: 16px;">
-          <option *ngFor="let limitOption of limitOptions" [value]="limitOption">{{ limitOption }}</option>
-        </select>  
-
-        <!-- Pagination Controls -->
-        <ngb-pagination class="mx-2"
-                        [(page)]="currentPage"
-                        [pageSize]="limit"
-                        [collectionSize]="totalOrders"
-                        [boundaryLinks]="true"
-                        (pageChange)="handlePageChange($event)"
-                        [maxSize]="5">
-        </ngb-pagination>
-      </div>
-    </div>
   </div>
+
+  <!-- Pagination -->
+  <div class="pagination-row">
+    <span class="page-size-label">Rows per page</span>
+    <select [(ngModel)]="limit" (change)="handleLimitChange()" class="form-select form-select-sm">
+      <option *ngFor="let o of limitOptions" [value]="o">{{ o }}</option>
+    </select>
+    <ngb-pagination
+      [(page)]="currentPage"
+      [pageSize]="limit"
+      [collectionSize]="totalOrders"
+      [boundaryLinks]="true"
+      (pageChange)="handlePageChange($event)"
+      [maxSize]="5">
+    </ngb-pagination>
+  </div>
+
 </div>

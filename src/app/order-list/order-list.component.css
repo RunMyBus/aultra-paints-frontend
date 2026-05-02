@@ -1,0 +1,112 @@
+.order-table {
+  font-size: 0.875rem;
+}
+
+/* Summary row */
+.summary-row {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.summary-row:hover {
+  background-color: #f0f4f8;
+}
+.summary-row td {
+  vertical-align: middle;
+  padding: 0.75rem 0.75rem;
+}
+
+.expand-toggle {
+  color: #adb5bd;
+  font-size: 1.1rem;
+  width: 36px;
+}
+
+/* Expanded detail panel */
+.detail-row td {
+  padding: 0;
+  background-color: #f8fafc;
+  border-top: none;
+}
+.detail-panel {
+  padding: 1rem 1.25rem 1.25rem;
+  border-top: 2px solid #2C3E50;
+}
+
+.detail-section {
+  margin-bottom: 1.25rem;
+}
+.detail-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #8a94a0;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+/* Items table inside expanded row */
+.items-table {
+  font-size: 0.82rem;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.items-table thead th {
+  background-color: #f0f4f8;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #4a5568;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0.5rem 0.75rem;
+}
+.items-table tbody td {
+  padding: 0.5rem 0.75rem;
+  border-color: #f0f4f8;
+}
+
+/* Meta row: amount + focus + details side by side */
+.detail-meta-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.detail-meta-row .detail-section {
+  min-width: 180px;
+  background: white;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 0;
+}
+
+.meta-kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.82rem;
+  padding: 0.2rem 0;
+}
+.meta-kv + .meta-kv {
+  border-top: 1px solid #f0f4f8;
+}
+
+/* Status filter pills */
+.filter-btn {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid #dee2e6;
+  color: #4a5568;
+  background: white;
+  transition: all 0.15s;
+}
+.filter-btn:hover {
+  background-color: #f0f4f8;
+  border-color: #adb5bd;
+}
+.filter-btn.active {
+  background-color: #2C3E50;
+  border-color: #2C3E50;
+  color: white;
+}

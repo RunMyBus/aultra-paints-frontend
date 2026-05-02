@@ -72,6 +72,11 @@ priceList: Array<{ volume: string, entries: Array<{ selectedKey: string, price: 
  
 focusEntities: any[] = [];
 selectedEntityId: number | null = null;
+focusWarehouses: any[] = [];
+selectedWarehouseId: number | null = null;
+focusBranches: any[] = [];
+selectedBranchId: number | null = null;
+narration: string = '';
 
   
     constructor(private apiRequestService: ApiRequestService, private modalService: NgbModal, public apiUrls: ApiUrlsService, private datePipe: DatePipe,private AuthService:AuthService, private router: Router ) {    super();
@@ -81,12 +86,26 @@ selectedEntityId: number | null = null;
     ngOnInit(): void {
       this.loadProductCatlogs();
       this.getAllStatesZonesAndDistricts();
-       this.loadFocusEntities();
+      this.loadFocusEntities();
+      this.loadFocusWarehouses();
+      this.loadFocusBranches();
     }
   
     loadFocusEntities() {
   this.apiRequestService.getFocusEntities().pipe(takeUntil(this.destroy$)).subscribe(res => {
     this.focusEntities = res.data || [];
+  });
+}
+
+loadFocusWarehouses() {
+  this.apiRequestService.getFocusWarehouses().pipe(takeUntil(this.destroy$)).subscribe(res => {
+    this.focusWarehouses = res.warehouses || [];
+  });
+}
+
+loadFocusBranches() {
+  this.apiRequestService.getFocusBranches().pipe(takeUntil(this.destroy$)).subscribe(res => {
+    this.focusBranches = res.warehouses || [];
   });
 }
 
@@ -402,34 +421,51 @@ updateCart(product: any, volume: string, change: number) {
     
 
     proceedToCheckout() {
+      this.submitted = true;
+
+      if (!this.selectedEntityId || !this.selectedWarehouseId || !this.selectedBranchId) {
+        return;
+      }
+
       const items = Object.keys(this.cart).map(id => {
-         const cartItem = this.cart[id]; 
+        const cartItem = this.cart[id];
         const product = this.getProductById(id);
         const count = this.cart[id].count;
         const price = this.cart[id].price;
-    
+
         return {
-          _id: cartItem.productId,          
-         volume: cartItem.volume,
+          _id: cartItem.productId,
+          volume: cartItem.volume,
           productOfferDescription: product?.productOfferDescription || product?.productDescription || '',
           productPrice: price,
           quantity: count,
           subtotal: price * count
         };
       });
-    
+
       const totalPrice = items.reduce((sum, item) => sum + item.subtotal, 0);
-    
-      const orderPayload = {
+
+      const orderPayload: any = {
         entityId: this.selectedEntityId,
+        warehouseId: this.selectedWarehouseId,
+        branchId: this.selectedBranchId,
         items,
         totalPrice
       };
-    
+
+      if (this.narration?.trim()) {
+        orderPayload.narration = this.narration.trim();
+      }
+
       this.apiRequestService.createOrder(orderPayload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response) => {
           Swal.fire('Order Placed', 'Your order was placed successfully!', 'success');
           this.cart = {};
+          this.submitted = false;
+          this.selectedEntityId = null;
+          this.selectedWarehouseId = null;
+          this.selectedBranchId = null;
+          this.narration = '';
           this.modalService.dismissAll();
         },
         error: (err) => {

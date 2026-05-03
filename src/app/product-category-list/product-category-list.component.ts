@@ -11,8 +11,7 @@ import { takeUntil } from 'rxjs';
   selector: 'app-product-category-list',
   standalone: true,
   imports: [FormsModule, CommonModule],
-  templateUrl: './product-category-list.component.html',
-  styleUrl: './product-category-list.component.css'
+  templateUrl: './product-category-list.component.html'
 })
 export class ProductCategoryListComponent extends Unsubscribable implements OnInit {
   @ViewChild('categoryForm') categoryForm!: NgForm;

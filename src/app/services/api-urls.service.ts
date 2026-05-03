@@ -119,10 +119,13 @@ deleteProductCatlog = 'productCatlog/delete/';
 // Focus Product / Unit APIs
 getFocusProducts = 'products/focus-products';
 getFocusEntities = 'products/focus-entities';
+getFocusWarehouses = 'products/focus-warehouses';
+getFocusBranches = 'products/focus-branches';
 
 //order
 checkoutUrl = 'order/create';
-getAllOrders = '/order/orders';
+getAllOrders = 'order/orders';
+retryFocusSync = 'order/retryFocusSync';
 
 // Credit Notes
 issueCreditNote      = 'creditNotes/issue';

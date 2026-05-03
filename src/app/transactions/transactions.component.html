@@ -118,27 +118,20 @@
             </table>
         </div>
 
-        <div class="row">
-            <div class="col-sm-12 text-right">
-              <div class="d-flex justify-content-end">
-                <!-- Limit Dropdown -->
-                <select [(ngModel)]="limit" (change)="handleLimitChange()" class="form-select mx-2" style="width:100px; margin-bottom: 16px">
-                  <option *ngFor="let limitOption of limitOptions" [value]="limitOption">{{ limitOption }}</option>
-                </select>
-                
-                <!-- Pagination Controls -->
-                <ngb-pagination
-                  class="mx-2"
-                  [(page)]="currentPage"
-                  [pageSize]="limit"
-                  [collectionSize]="totalPages * limit" 
-                  [boundaryLinks]="true"
-                  (pageChange)="handlePageChange($event)"
-                  [maxSize]="5">
-                </ngb-pagination>
-              </div>
-            </div>
-          </div>
+        <div class="pagination-row">
+          <span class="page-size-label">Rows per page</span>
+          <select [(ngModel)]="limit" (change)="handleLimitChange()" class="form-select">
+            <option *ngFor="let limitOption of limitOptions" [value]="limitOption">{{ limitOption }}</option>
+          </select>
+          <ngb-pagination
+            [(page)]="currentPage"
+            [pageSize]="limit"
+            [collectionSize]="totalPages * limit"
+            [boundaryLinks]="true"
+            (pageChange)="handlePageChange($event)"
+            [maxSize]="5">
+          </ngb-pagination>
+        </div>
           
 <!-- Update Branch Modal -->
 <div class="modal" tabindex="-1" [ngClass]="{ 'show': showUpdateModal }" style="display: block; margin-top: 100px;"

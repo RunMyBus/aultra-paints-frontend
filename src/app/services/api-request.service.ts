@@ -313,6 +313,31 @@ deleteProductCategory(id: string) {
     );
 }
 
+// Product Category Master APIs
+getProductCategories(): Observable<any> {
+    return this.http.get(this.ApiUrls.mainUrl + this.ApiUrls.getProductCategories).pipe(
+        map((res: any) => res)
+    );
+}
+
+createProductCategoryMaster(data: any): Observable<any> {
+    return this.http.post(this.ApiUrls.mainUrl + this.ApiUrls.createProductCategory, data).pipe(
+        map((res: any) => res)
+    );
+}
+
+updateProductCategoryMaster(id: string, data: any): Observable<any> {
+    return this.http.put(this.ApiUrls.mainUrl + this.ApiUrls.updateProductCategory + id, data).pipe(
+        map((res: any) => res)
+    );
+}
+
+deleteProductCategoryMaster(id: string): Observable<any> {
+    return this.http.delete(this.ApiUrls.mainUrl + this.ApiUrls.deleteProductCategory + id).pipe(
+        map((res: any) => res)
+    );
+}
+
 // Create a new order
 createOrder(data: any): Observable<any> {
     return this.http.post(this.ApiUrls.mainUrl + this.ApiUrls.checkoutUrl, data).pipe(

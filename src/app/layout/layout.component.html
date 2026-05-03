@@ -146,6 +146,14 @@
                             <span *ngIf="!isSidebarCollapsed" style="border-left: 1px solid #ccc" class="px-2">Reward Schemes</span>
                         </div>
                     </li>
+
+                    <!--product-category-list-->
+                    <li class="nav-item" (click)="navigateTo('product-category-list')">
+                        <div style="display: flex; align-items: center;">
+                            <i class="bx px-2 bx-category" style="font-size: 20px;" title="Product Categories"></i>
+                            <span *ngIf="!isSidebarCollapsed" style="border-left: 1px solid #ccc" class="px-2">Product Categories</span>
+                        </div>
+                    </li>
                 </ul>
             </li>
         </ul>

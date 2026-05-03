@@ -116,6 +116,12 @@ searchProductCatlog = 'productCatlog/search';
 updateProductCatlog = 'productCatlog/update/'; 
 deleteProductCatlog = 'productCatlog/delete/'; 
 
+// Product Category API URLs
+createProductCategory = 'productCategories';
+getProductCategories = 'productCategories/all';
+updateProductCategory = 'productCategories/';
+deleteProductCategory = 'productCategories/';
+
 // Focus Product / Unit APIs
 getFocusProducts = 'products/focus-products';
 getFocusEntities = 'products/focus-entities';

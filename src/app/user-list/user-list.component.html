@@ -258,13 +258,30 @@
         </div>
               
             
+            <!-- Product Categories (Dealer - required, others - optional) -->
+            <div class="row" *ngIf="currentUser.accountType === 'Dealer'">
+                <div class="col-sm-12 mb-3 form-group">
+                    <label class="form-label">Product Categories <span class="text-danger">*</span></label>
+                    <ng-select
+                        [items]="productCategories"
+                        bindLabel="name"
+                        bindValue="_id"
+                        [(ngModel)]="currentUser.productCategories"
+                        name="addProductCategories"
+                        [multiple]="true"
+                        [clearable]="true"
+                        [searchable]="true"
+                        placeholder="Select product categories"
+                    ></ng-select>
+                </div>
+            </div>
+
             <!-- Address in One Row (if Dealer) -->
             <div class="row" *ngIf="currentUser.accountType === 'Dealer'">
                 <div class="col-sm-12 mb-3 form-group">
-                    <label for="addAddress">Address</label> <!-- Removed the '*' for Address -->
+                    <label for="addAddress">Address</label>
                     <textarea class="form-control" id="addAddress" [(ngModel)]="currentUser.address" name="addAddress" rows="3"
                               placeholder="Enter address" #address="ngModel"></textarea>
-                    <!-- Removed error message for Address -->
                 </div>
             </div>
 
@@ -420,6 +437,24 @@
 </div>
 
             
+            <!-- Product Categories (Dealer - required, others - optional) -->
+            <div class="row" *ngIf="currentUser.accountType === 'Dealer'">
+                <div class="col-sm-12 mb-3 form-group">
+                    <label class="form-label">Product Categories <span class="text-danger">*</span></label>
+                    <ng-select
+                        [items]="productCategories"
+                        bindLabel="name"
+                        bindValue="_id"
+                        [(ngModel)]="currentUser.productCategories"
+                        name="editProductCategories"
+                        [multiple]="true"
+                        [clearable]="true"
+                        [searchable]="true"
+                        placeholder="Select product categories"
+                    ></ng-select>
+                </div>
+            </div>
+
             <!-- Address in One Row (if Dealer) -->
             <div class="row" *ngIf="currentUser.accountType === 'Dealer'">
                 <div class="col-sm-12 mb-3 form-group">

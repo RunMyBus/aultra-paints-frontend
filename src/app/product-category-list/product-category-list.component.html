@@ -1,0 +1,66 @@
+<div class="container-fluid container-mt shadow-sm">
+  <div class="row mb-4">
+    <div class="col-sm-2"><h4>Product Categories</h4></div>
+    <div class="col-sm-10">
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-primary" (click)="openAdd(categoryModal)">Add Category</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">S.NO</th>
+          <th scope="col">Category Name</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let category of categories; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ category.name }}</td>
+          <td>
+            <button (click)="openEdit(category, categoryModal)" class="btn btn-warning mx-2" title="Edit">
+              <i class="bx bx-edit"></i>
+            </button>
+            <button (click)="delete(category._id)" class="btn btn-danger mx-2" title="Delete">
+              <i class="bx bx-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="categories.length === 0">
+          <td class="text-center" colspan="3">No Records found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<ng-template #categoryModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ currentCategory._id ? 'Edit' : 'Add' }} Product Category</h4>
+  </div>
+  <div class="modal-body">
+    <form #categoryForm="ngForm" novalidate class="modal-box shadow-sm">
+      <div class="form-group mb-3">
+        <label class="form-label" for="catName">Category Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="catName" [(ngModel)]="currentCategory.name"
+               name="name" required #catName="ngModel" placeholder="Enter category name" />
+        <div *ngIf="catName.invalid && (catName.touched || submitted)" class="text-danger">
+          Category name is required.
+        </div>
+      </div>
+      <div *ngIf="errors.length > 0" class="alert alert-danger mt-2">
+        <ul class="mb-0">
+          <li *ngFor="let error of errors">{{ error }}</li>
+        </ul>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close()">Close</button>
+    <button type="button" class="btn btn-primary" (click)="save(modal)">Save</button>
+  </div>
+</ng-template>

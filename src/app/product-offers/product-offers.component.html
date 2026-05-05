@@ -123,20 +123,21 @@
                     </div>
                 </div>
 
-                <!-- Route Scheme -->
+                <!-- Product Category -->
                 <div class="row">
                     <div class="col-sm-12 mb-3 form-group">
-                        <label class="form-label" for="routeScheme">Route Scheme (Salesman)</label>
+                        <label class="form-label" for="productCategory">Product Category <span class="text-danger">*</span></label>
                         <ng-select
-                            [items]="salesExecutives"
+                            [items]="productCategories"
                             bindLabel="name"
-                            bindValue="mobile"
-                            [(ngModel)]="currentOffer.routeScheme"
-                            name="routeScheme"
-                            placeholder="All Dealers (no filter)"
-                            [multiple]="true"
-                            [clearable]="true"
+                            bindValue="_id"
+                            [(ngModel)]="currentOffer.productCategory"
+                            name="productCategory"
+                            placeholder="Select a category"
+                            [multiple]="false"
+                            [clearable]="false"
                             [searchable]="true"
+                            required
                         ></ng-select>
                     </div>
                 </div>

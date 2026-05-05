@@ -28,7 +28,7 @@ import { takeUntil } from 'rxjs';
 export class ProductOffersComponent extends Unsubscribable implements OnInit {
   @ViewChild('productOfferForm') productOfferForm!: NgForm;
   productOffers: any[] = [];
-  salesExecutives: any[] = [];
+  productCategories: any[] = [];
   currentOffer: any = {
     productOfferImageUrl: '',
     productOfferDescription: '',
@@ -37,7 +37,7 @@ export class ProductOffersComponent extends Unsubscribable implements OnInit {
     cashback: 0,
     redeemPoints: 0,
     price: '',
-    routeScheme: []
+    productCategory: null
   };
 
   productOffersQuery: any = {
@@ -72,38 +72,20 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
   ngOnInit(): void {
     this.loadProductOffers();
     this.getAllStatesZonesAndDistricts();
-    this.loadSalesExecutives();
+    this.loadProductCategories();
   }
 
-  // Accepts a string (legacy) or string[] (current) and returns display names joined by ', '
-  getSeName(routeScheme: string | string[] | null): string {
-    if (!routeScheme) return '';
-    const mobiles = Array.isArray(routeScheme) ? routeScheme : [routeScheme];
-    return mobiles
-      .map(mobile => {
-        const se = this.salesExecutives.find(s => s.mobile === mobile);
-        return se ? se.name : mobile;
-      })
-      .join(', ');
-  }
-
-  /** @deprecated kept for call-site compatibility — use getSeName */
-  _getSeName(mobile: string): string {
-    const se = this.salesExecutives.find(s => s.mobile === mobile);
-    return se ? se.name : mobile;
-  }
-
-  // Normalises legacy string or new string[] into always-an-array for *ngFor
-  asArray(value: string | string[] | null | undefined): string[] {
-    if (!value) return [];
-    return Array.isArray(value) ? value : [value];
-  }
-
-  loadSalesExecutives() {
-    this.apiRequestService.getAllSalesExecutives().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (response: any) => { this.salesExecutives = response.data || response; },
-      error: (err) => console.error('Error loading sales executives:', err)
+  loadProductCategories() {
+    this.apiRequestService.getProductCategories().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response: any) => { this.productCategories = response.data || []; },
+      error: (err) => console.error('Error loading product categories:', err)
     });
+  }
+
+  getCategoryName(categoryId: string | null): string {
+    if (!categoryId) return '';
+    const cat = this.productCategories.find(c => c._id === categoryId);
+    return cat ? cat.name : categoryId;
   }
 
   loadProductOffers() {
@@ -187,7 +169,7 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
         productOfferStatus: 'Active',
         cashback: 0,
         redeemPoints: 0,
-        routeScheme: []
+        productCategory: null
       };
   
       // Set default date
@@ -266,7 +248,9 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
       formData.append('cashback', this.currentOffer.cashback.toString());
       formData.append('redeemPoints', this.currentOffer.redeemPoints.toString());
       formData.append('price', JSON.stringify(this.currentOffer.price));
-      formData.append('routeScheme', JSON.stringify(this.currentOffer.routeScheme || []));
+      if (this.currentOffer.productCategory) {
+        formData.append('productCategory', this.currentOffer.productCategory);
+      }
 
       // Update or Create Offer
       if (this.currentOffer._id) {

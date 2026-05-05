@@ -11,11 +11,12 @@ import {AuthService} from "../services/auth.service";
 import { UnverifiedUsersComponent } from '../unverified-users/unverified-users.component';
 import { Unsubscribable } from '../shared/unsubscribable';
 import { takeUntil } from 'rxjs';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
     selector: 'app-user-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, NgbPagination,RouterModule, UnverifiedUsersComponent],
+    imports: [CommonModule, FormsModule, NgbPagination, RouterModule, UnverifiedUsersComponent, NgSelectModule],
     templateUrl: './user-list.component.html',
     styleUrls: ['./user-list.component.css']
 })
@@ -62,12 +63,13 @@ export class UserListComponent extends Unsubscribable implements OnInit {
         {id: 'SuperUser', name: 'Super User'},
         {id:'SalesExecutive', name:'SalesExecutive'}
     ];
-    errorsAddUser: string[] = [];  
-    errorsEditUser: string[] = []; 
-    currentTab: string = 'users'; 
+    errorsAddUser: string[] = [];
+    errorsEditUser: string[] = [];
+    currentTab: string = 'users';
     stateNames: any[] = [];
     zoneNames: any[] = [];
     districtNames: any[] = [];
+    productCategories: any[] = [];
 
     constructor(private apiService: ApiRequestService, private modalService: NgbModal,
                 private router: Router, private apiUrls: ApiUrlsService, private AuthService: AuthService) {
@@ -81,6 +83,14 @@ export class UserListComponent extends Unsubscribable implements OnInit {
         this.getStateNames();
         this.getZoneNames();
         this.getDistrictNames();
+        this.loadProductCategories();
+    }
+
+    loadProductCategories(): void {
+        this.apiService.getProductCategories().pipe(takeUntil(this.destroy$)).subscribe({
+            next: (response: any) => { this.productCategories = response.data || []; },
+            error: (err) => console.error('Error loading product categories:', err)
+        });
     }
 
     loadUsers(): void {
@@ -229,7 +239,7 @@ exportUsers(): void {
 
     addUser(userModal: any): void {
         // Reset the currentUser object to a fresh
-        this.currentUser = { name: '', mobile: '', password: '', accountType: 'Painter' , salesExecutive: '', state: '', zone : '', district: ''};
+        this.currentUser = { name: '', mobile: '', password: '', accountType: 'Painter', salesExecutive: '', state: '', zone: '', district: '', productCategories: [] };
     
         // Clear any previous errors and submitted flag
         this.errorsAddUser = [];
@@ -247,16 +257,16 @@ exportUsers(): void {
 
     submitForm(modal: any): void {
         this.submitted = true;
-    
+        this.errorsAddUser = [];
+
+        if (this.currentUser.accountType === 'Dealer' &&
+            (!this.currentUser.productCategories || this.currentUser.productCategories.length === 0)) {
+            this.errorsAddUser = ['Product Categories are required for Dealer accounts.'];
+            return;
+        }
+
         if (this.userForm.valid) {
-            if (
-                this.currentUser.accountType === 'Dealer' &&
-                (!this.currentUser.state || !this.currentUser.zone || !this.currentUser.district)
-            ) {
-                this.confirmSave(modal);
-            } else {
-                this.confirmSave(modal);
-            }
+            this.confirmSave(modal);
         }
     }
 
@@ -294,16 +304,16 @@ exportUsers(): void {
     
     updateUser(modal: any, userForm: any): void {
         this.submitted = true;
-        
+        this.errorsEditUser = [];
+
+        if (this.currentUser.accountType === 'Dealer' &&
+            (!this.currentUser.productCategories || this.currentUser.productCategories.length === 0)) {
+            this.errorsEditUser = ['Product Categories are required for Dealer accounts.'];
+            return;
+        }
+
         if (userForm.valid) {
-            if (
-                this.currentUser.accountType === 'Dealer' &&
-                (!this.currentUser.state || !this.currentUser.zone || !this.currentUser.district)
-            ) {
-                this.confirmUpdate(modal);
-            } else {
-                this.confirmUpdate(modal);
-            }
+            this.confirmUpdate(modal);
         }
     }
     

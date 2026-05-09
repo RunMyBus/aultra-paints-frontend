@@ -83,12 +83,26 @@ narration: string = '';
         this.currentUser = this.AuthService.currentUserValue;
     }
   
+    productCategories: any[] = [];
+
     ngOnInit(): void {
       this.loadProductCatlogs();
       this.getAllStatesZonesAndDistricts();
       this.loadFocusEntities();
       this.loadFocusWarehouses();
       this.loadFocusBranches();
+      this.loadProductCategories();
+    }
+
+    loadProductCategories() {
+      this.apiRequestService.getProductCategories().pipe(takeUntil(this.destroy$)).subscribe((response: any) => {
+        this.productCategories = response.data;
+      });
+    }
+
+    getCategoryName(categoryId: string): string {
+      const category = this.productCategories.find(c => c._id === categoryId);
+      return category ? category.name : '';
     }
   
     loadFocusEntities() {

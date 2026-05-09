@@ -33,6 +33,28 @@
           </div>
         </div>
 
+        <!-- Product Category -->
+        <div class="row mb-4">
+          <div class="col-md-12">
+            <label for="productCategory" class="form-label fw-semibold">Product Category <span class="text-danger">*</span></label>
+            <ng-select
+              [items]="productCategories"
+              bindLabel="name"
+              bindValue="_id"
+              [(ngModel)]="currentCatlog.productCategory"
+              name="productCategory"
+              placeholder="Select a category"
+              [multiple]="false"
+              [clearable]="false"
+              [searchable]="true"
+              required>
+            </ng-select>
+            <div *ngIf="submitted && !currentCatlog.productCategory" class="text-danger mt-1 small fst-italic">
+              Product category is required.
+            </div>
+          </div>
+        </div>
+
         <!-- Product Image -->
         <div class="mb-4">
           <label for="productOfferImage" class="form-label fw-semibold">Product Image <span

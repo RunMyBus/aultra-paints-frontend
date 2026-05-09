@@ -37,6 +37,7 @@ export class EditProductComponent extends Unsubscribable {
 
   groupedDropdownData: Array<{ id: string; label: string; group?: string }> = [];
   focusProducts: any[] = [];
+  productCategories: any[] = [];
 
 
   constructor(
@@ -74,6 +75,13 @@ export class EditProductComponent extends Unsubscribable {
     this.initPriceList();
     this.loadGroupedDropdownData();
     this.loadFocusProducts();
+    this.loadProductCategories();
+  }
+
+  loadProductCategories() {
+    this.apiRequestService.getProductCategories().pipe(takeUntil(this.destroy$)).subscribe((response: any) => {
+      this.productCategories = response.data;
+    });
   }
 
   loadFocusProducts() {
@@ -300,6 +308,10 @@ export class EditProductComponent extends Unsubscribable {
       this.errorArray.push('Product name is required.');
     }
 
+    if (!this.currentCatlog.productCategory) {
+      this.errorArray.push('Product category is required.');
+    }
+
     if (!this.currentCatlog.productOfferImage && !this.currentCatlog.productOfferImageUrl) {
       this.errorArray.push('Product image is required.');
     }
@@ -376,6 +388,9 @@ export class EditProductComponent extends Unsubscribable {
       formData.append('productStatus', this.currentCatlog.productOfferStatus);
       formData.append('price', JSON.stringify(this.currentCatlog.price));
       formData.append('focusProductMapping', JSON.stringify(focusProductMapping));
+      if (this.currentCatlog.productCategory) {
+        formData.append('productCategory', this.currentCatlog.productCategory);
+      }
 
 
       this.apiRequestService

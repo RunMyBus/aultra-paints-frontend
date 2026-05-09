@@ -53,6 +53,10 @@
               [class.bg-danger]="category.productOfferStatus === 'Inactive'">
               {{ category.productOfferStatus }}
             </span>
+            <!-- Badge for Category -->
+            <span *ngIf="category.productCategory" class="badge rounded-pill bg-info me-2">
+              {{ getCategoryName(category.productCategory) }}
+            </span>
 
 
           </div>

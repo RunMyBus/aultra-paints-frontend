@@ -31,6 +31,7 @@ export class CreateProductComponent extends Unsubscribable {
     productDescription: '',
     productStatus: 'Active',
     focusProductIds: [],
+    productCategory: null,
     price: ''
   };
 
@@ -46,6 +47,7 @@ export class CreateProductComponent extends Unsubscribable {
 
   focusProducts: any[] = [];
   focusEntities: any[] = [];
+  productCategories: any[] = [];
 
 
   constructor(
@@ -62,6 +64,13 @@ export class CreateProductComponent extends Unsubscribable {
   ngOnInit() {
     this.getAllStatesZonesAndDistricts();
     this.loadFocusDropdowns();
+    this.loadProductCategories();
+  }
+
+  loadProductCategories() {
+    this.apiRequestService.getProductCategories().pipe(takeUntil(this.destroy$)).subscribe((response: any) => {
+      this.productCategories = response.data;
+    });
   }
 
   loadFocusDropdowns() {
@@ -175,6 +184,10 @@ export class CreateProductComponent extends Unsubscribable {
       this.errorArray.push('Product name is required.');
     }
 
+    if (!this.currentCatlog.productCategory) {
+      this.errorArray.push('Product category is required.');
+    }
+
     if (!this.currentCatlog.productImage && !this.currentCatlog.productImageUrl) {
       this.errorArray.push('Product image is required.');
     }
@@ -242,6 +255,9 @@ export class CreateProductComponent extends Unsubscribable {
     formData.append('productStatus', this.currentCatlog.productStatus);
     formData.append('price', JSON.stringify(this.currentCatlog.price));
     formData.append('focusProductMapping', JSON.stringify(focusProductMapping));
+    if (this.currentCatlog.productCategory) {
+      formData.append('productCategory', this.currentCatlog.productCategory);
+    }
 
 
 
@@ -276,6 +292,7 @@ export class CreateProductComponent extends Unsubscribable {
       productDescription: '',
       productStatus: 'Active',
       focusProductIds: [],
+      productCategory: null,
       price: ''
     };
 

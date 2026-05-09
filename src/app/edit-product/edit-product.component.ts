@@ -60,6 +60,10 @@ export class EditProductComponent extends Unsubscribable {
       ...navState['catlog']
     };
 
+    // Normalize productCategory: the search API populates it as an object; bindValue="_id" needs a plain string.
+    if (this.currentCatlog.productCategory && typeof this.currentCatlog.productCategory === 'object') {
+      this.currentCatlog.productCategory = this.currentCatlog.productCategory._id;
+    }
 
     // Convert price object to priceList for form editing
     if (this.currentCatlog.price && typeof this.currentCatlog.price === 'object') {

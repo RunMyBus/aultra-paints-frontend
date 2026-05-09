@@ -1,15 +1,37 @@
 <div class="container-fluid container-mt shadow-sm">
 
   <!-- Header + filters -->
-  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
     <h5 class="mb-0 me-auto">Orders</h5>
-    <button class="btn btn-sm filter-btn"
-            [class.active]="statusFilter === ''"
-            (click)="setStatusFilter('')">All</button>
-    <button *ngFor="let s of statusOptions"
-            class="btn btn-sm filter-btn"
-            [class.active]="statusFilter === s"
-            (click)="setStatusFilter(s)">{{ s }}</button>
+
+    <div>
+      <label class="form-label small mb-1">Status</label>
+      <select class="form-select form-select-sm"
+              [(ngModel)]="statusFilter"
+              (change)="onStatusChange()">
+        <option value="">All</option>
+        <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+
+    <div style="min-width: 240px;">
+      <label class="form-label small mb-1">Dealer</label>
+      <input type="text"
+             class="form-control form-control-sm"
+             placeholder="Search dealer code or name"
+             [(ngModel)]="dealerInput"
+             (ngModelChange)="onDealerInputChange($event)"
+             [ngbTypeahead]="dealerSearch"
+             [resultFormatter]="dealerFormatter"
+             [inputFormatter]="dealerFormatter"
+             (selectItem)="onDealerSelect($event)" />
+      <small *ngIf="dealersError" class="text-muted d-block mt-1">{{ dealersError }}</small>
+    </div>
+
+    <button *ngIf="hasActiveFilters()"
+            class="btn btn-sm btn-link p-0 align-self-end"
+            type="button"
+            (click)="clearFilters()">Clear filters</button>
   </div>
 
   <!-- Loading -->
@@ -33,7 +55,7 @@
         </tr>
       </thead>
       <tbody>
-        <ng-container *ngFor="let order of filteredOrders; let i = index">
+        <ng-container *ngFor="let order of orders; let i = index">
 
           <!-- Summary row -->
           <tr class="summary-row" (click)="toggleExpand(order.orderId)">
@@ -177,7 +199,7 @@
 
         </ng-container>
 
-        <tr *ngIf="filteredOrders.length === 0">
+        <tr *ngIf="orders.length === 0">
           <td colspan="8" class="text-center text-muted py-4">No orders found</td>
         </tr>
       </tbody>

@@ -145,7 +145,8 @@ export class OrderListComponent extends Unsubscribable implements OnInit {
       })
     );
 
-  dealerFormatter = (d: DealerOption) => `${d.dealerCode} — ${d.name}`;
+  dealerFormatter = (d: DealerOption | string): string =>
+    typeof d === 'string' ? d : `${d.dealerCode} — ${d.name}`;
 
   onDealerSelect(event: any): void {
     const d = event.item as DealerOption;

@@ -20,7 +20,7 @@
              class="form-control form-control-sm"
              placeholder="Search dealer code or name"
              [(ngModel)]="dealerInput"
-             (ngModelChange)="onDealerInputChange($event)"
+             (input)="onDealerInputChange($any($event).target.value)"
              [ngbTypeahead]="dealerSearch"
              [resultFormatter]="dealerFormatter"
              [inputFormatter]="dealerFormatter"

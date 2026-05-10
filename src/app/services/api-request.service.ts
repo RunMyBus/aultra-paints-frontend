@@ -348,13 +348,25 @@ createOrder(data: any): Observable<any> {
   }
 
 
-  getAllOrders(page: number, limit: number) {
-    return this.http.post(this.ApiUrls.mainUrl + this.ApiUrls.getAllOrders, {
-      page,
-      limit
-    }).pipe(
-      map((res: any) => res)
-    );
+  getAllOrders(
+    page: number,
+    limit: number,
+    filters?: { status?: string; dealerCode?: string }
+  ) {
+    const body: any = { page, limit };
+    if (filters?.status) body.status = filters.status;
+    if (filters?.dealerCode) body.dealerCode = filters.dealerCode;
+    return this.http
+      .post(this.ApiUrls.mainUrl + this.ApiUrls.getAllOrders, body)
+      .pipe(map((res: any) => res));
+  }
+
+  getOrderDealers() {
+    return this.http
+      .get<{ success: boolean; dealers: { _id: string; dealerCode: string; name: string }[] }>(
+        this.ApiUrls.mainUrl + this.ApiUrls.getOrderDealersUrl
+      )
+      .pipe(map((res) => res.dealers || []));
   }
 
   exportTransaction(): Observable<Blob> {

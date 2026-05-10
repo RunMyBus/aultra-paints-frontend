@@ -131,6 +131,7 @@ getFocusBranches = 'products/focus-branches';
 //order
 checkoutUrl = 'order/create';
 getAllOrders = 'order/orders';
+getOrderDealersUrl = 'order/dealers';
 retryFocusSync = 'order/retryFocusSync';
 
 // Credit Notes

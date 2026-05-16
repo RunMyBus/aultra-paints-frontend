@@ -34,7 +34,8 @@ export class UserListComponent extends Unsubscribable implements OnInit {
         name: '',
         mobile: '',
         accountType: 'P',
-        salesExecutive: '' ,
+        salesExecutive: '',
+        parentSalesExecutive: '',
         state: '',
         zone: '',
         district: '',
@@ -239,7 +240,7 @@ exportUsers(): void {
 
     addUser(userModal: any): void {
         // Reset the currentUser object to a fresh
-        this.currentUser = { name: '', mobile: '', password: '', accountType: 'Painter', salesExecutive: '', state: '', zone: '', district: '', productCategories: [] };
+        this.currentUser = { name: '', mobile: '', password: '', accountType: 'Painter', salesExecutive: '', parentSalesExecutive: '', state: '', zone: '', district: '', productCategories: [] };
     
         // Clear any previous errors and submitted flag
         this.errorsAddUser = [];

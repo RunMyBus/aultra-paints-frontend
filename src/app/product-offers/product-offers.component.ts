@@ -37,7 +37,8 @@ export class ProductOffersComponent extends Unsubscribable implements OnInit {
     cashback: 0,
     redeemPoints: 0,
     price: '',
-    productCategory: null
+    productCategory: null,
+    offerType: 'ongoing',
   };
 
   productOffersQuery: any = {
@@ -80,6 +81,14 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
       next: (response: any) => { this.productCategories = response.data || []; },
       error: (err) => console.error('Error loading product categories:', err)
     });
+  }
+
+  offerTypeLabel(type: string | null): string {
+    switch (type) {
+      case 'this_week': return 'This Week';
+      case 'this_month': return 'This Month';
+      default: return 'Ongoing';
+    }
   }
 
   getCategoryName(categoryId: string | null): string {
@@ -169,7 +178,8 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
         productOfferStatus: 'Active',
         cashback: 0,
         redeemPoints: 0,
-        productCategory: null
+        productCategory: null,
+        offerType: 'ongoing',
       };
   
       // Set default date
@@ -251,6 +261,7 @@ priceList: Array<{ selectedKey: string; price: number }> = [{ selectedKey: 'All'
       if (this.currentOffer.productCategory) {
         formData.append('productCategory', this.currentOffer.productCategory);
       }
+      formData.append('offerType', this.currentOffer.offerType || 'ongoing');
 
       // Update or Create Offer
       if (this.currentOffer._id) {

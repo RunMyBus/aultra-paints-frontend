@@ -28,17 +28,36 @@
                 <p class="card-text" *ngIf="offer.redeemPoints">Redeem Points: {{ offer.redeemPoints }}</p>
 
 
-                <div class="mt-auto d-flex justify-content-between align-items-center">
-                    <span class="badge rounded-pill bg-success me-2" [class.bg-danger]="offer.productOfferStatus === 'Inactive'">{{ offer.productOfferStatus }}</span>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" [checked]="offer.productOfferStatus === 'Active'" (change)="toggleOfferStatus(offer)">
+                <div class="mt-auto d-flex justify-content-between align-items-center gap-2">
+                  <!-- Left: status badges -->
+                  <div class="d-flex align-items-center gap-1 flex-wrap">
+                    <span class="badge rounded-pill bg-success"
+                          [class.bg-danger]="offer.productOfferStatus === 'Inactive'">
+                      {{ offer.productOfferStatus }}
+                    </span>
+                    <span class="badge rounded-pill"
+                          [class.bg-primary]="offer.offerType === 'ongoing' || !offer.offerType"
+                          [class.bg-info]="offer.offerType === 'this_week'"
+                          [class.bg-warning]="offer.offerType === 'this_month'">
+                      {{ offerTypeLabel(offer.offerType) }}
+                    </span>
+                  </div>
+                  <!-- Right: controls -->
+                  <div class="d-flex align-items-center gap-1">
+                    <div class="form-check form-switch mb-0">
+                      <input class="form-check-input" type="checkbox"
+                             [checked]="offer.productOfferStatus === 'Active'"
+                             (change)="toggleOfferStatus(offer)">
                     </div>
-                    <button (click)="addOrEditOffer(productModal, offer)" class="btn btn-light mx-2"  title="Edit Product Offer">
-                        <i class='bx bxs-edit-alt'></i>
+                    <button (click)="addOrEditOffer(productModal, offer)"
+                            class="btn btn-light btn-sm" title="Edit Product Offer">
+                      <i class='bx bxs-edit-alt'></i>
                     </button>
-                    <button (click)="deleteOffer(offer._id, offer.productOfferDescription)" class="btn btn-danger btn-sm" title="Delete Product Offer">
-                        <i class="bx bx-trash"></i>
+                    <button (click)="deleteOffer(offer._id, offer.productOfferDescription)"
+                            class="btn btn-danger btn-sm" title="Delete Product Offer">
+                      <i class="bx bx-trash"></i>
                     </button>
+                  </div>
                 </div>
             </div>
         </div>
@@ -139,6 +158,33 @@
                             [searchable]="true"
                             required
                         ></ng-select>
+                    </div>
+                </div>
+
+                <!-- Offer Type -->
+                <div class="row">
+                    <div class="col-sm-12 mb-3 form-group">
+                        <label class="form-label">Offer Type <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" id="offerTypeOngoing"
+                                       name="offerType" value="ongoing"
+                                       [(ngModel)]="currentOffer.offerType" required />
+                                <label class="form-check-label" for="offerTypeOngoing">Ongoing</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" id="offerTypeWeek"
+                                       name="offerType" value="this_week"
+                                       [(ngModel)]="currentOffer.offerType" required />
+                                <label class="form-check-label" for="offerTypeWeek">This Week</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" id="offerTypeMonth"
+                                       name="offerType" value="this_month"
+                                       [(ngModel)]="currentOffer.offerType" required />
+                                <label class="form-check-label" for="offerTypeMonth">This Month</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

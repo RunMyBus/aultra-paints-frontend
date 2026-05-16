@@ -247,9 +247,14 @@ export class ApiRequestService {
  getAllSalesExecutives(): Observable<any> {
     return this.http.get(this.ApiUrls.mainUrl + this.ApiUrls.SalesExecutives).pipe(
       map((res: any) => {
-        return res; // Return the response (or you can modify the response as needed)
+        return res;
       })
     );
+  }
+
+  // Junior SEs reporting to the currently logged-in Senior SE
+  getJuniorSalesExecutives(): Observable<any> {
+    return this.http.get(`${this.ApiUrls.mainUrl}users/junior-sales-executives`);
   }
   
 
@@ -351,11 +356,12 @@ createOrder(data: any): Observable<any> {
   getAllOrders(
     page: number,
     limit: number,
-    filters?: { status?: string; dealerCode?: string }
+    filters?: { status?: string; dealerCode?: string; salesExecutiveMobile?: string }
   ) {
     const body: any = { page, limit };
     if (filters?.status) body.status = filters.status;
     if (filters?.dealerCode) body.dealerCode = filters.dealerCode;
+    if (filters?.salesExecutiveMobile) body.salesExecutiveMobile = filters.salesExecutiveMobile;
     return this.http
       .post(this.ApiUrls.mainUrl + this.ApiUrls.getAllOrders, body)
       .pipe(map((res: any) => res));

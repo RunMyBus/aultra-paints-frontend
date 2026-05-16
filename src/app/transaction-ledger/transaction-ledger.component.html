@@ -1,9 +1,20 @@
 <div class="container-fluid container-mt shadow-sm">
-  <div class="row mb-4">
+  <div class="row mb-4 align-items-center">
     <div class="col-sm-2">
       <h4>Transaction Ledger</h4>
     </div>
-    <div class="col-sm-10 d-flex justify-content-end"></div>
+    <div class="col-sm-10 d-flex justify-content-end align-items-center gap-3">
+      <div>
+        <label class="form-label small mb-1">Credit Note Status</label>
+        <select class="form-select form-select-sm"
+                [(ngModel)]="creditNoteStatus"
+                (change)="onStatusChange()">
+          <option value="">All</option>
+          <option value="pending">Pending</option>
+          <option value="issued">Issued</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <div class="table-wrapper">
@@ -17,7 +28,8 @@
           <th scope="col">Value</th>
           <th scope="col">Balance</th>
           <th scope="col">Date</th>
-          <th scope="col">Action</th> 
+          <th scope="col">Credit Note</th>
+          <th scope="col">Action</th>
         </tr>
       </thead>
 
@@ -31,17 +43,26 @@
           <td>{{ transaction.pointsBalance ?? transaction.cashBalance ?? '-' }}</td>
           <td>{{ transaction.createdAt | date:'short' }}</td>
           <td>
-  <button 
-    class="btn btn-sm btn-success mx-2"
-    (click)="downloadCreditNote(transaction._id)" title="Download CreditNote">
-    <i class="bx bx-download"></i> 
-  </button>
-</td>
+            <span class="badge rounded-pill"
+                  [class.bg-success]="transaction.creditNoteIssued"
+                  [class.bg-warning]="!transaction.creditNoteIssued"
+                  [class.text-dark]="!transaction.creditNoteIssued">
+              {{ transaction.creditNoteIssued ? 'Issued' : 'Pending' }}
+            </span>
+          </td>
+          <td>
+            <button
+              class="btn btn-sm btn-success mx-2"
+              (click)="downloadCreditNote(transaction._id)"
+              title="Download CreditNote">
+              <i class="bx bx-download"></i>
+            </button>
+          </td>
 
         </tr>
 
         <tr *ngIf="transactions.length === 0">
-          <td class="text-center" colspan="5">No Records found</td>
+          <td class="text-center" colspan="9">No Records found</td>
         </tr>
       </tbody>
     </table>

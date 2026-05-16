@@ -384,10 +384,14 @@ export class EditProductComponent extends Unsubscribable {
       const formData = new FormData();
 
       if (this.currentCatlog.productOfferImage) {
-        formData.append('productImage', this.currentCatlog.productOfferImage);
+        // productOfferImageUrl holds the base64 data URL set by handleImageChange;
+        // send it as a text field so upload.none() accepts it (not a binary file upload).
+        formData.append('productImage', this.currentCatlog.productOfferImageUrl);
+        // productImageUrl is not sent here — the backend will replace it with the new S3 URL.
+      } else {
+        // No new image — pass the existing S3 URL so the backend keeps it unchanged.
+        formData.append('productImageUrl', this.currentCatlog.productOfferImageUrl || '');
       }
-
-      formData.append('productImageUrl', this.currentCatlog.productOfferImageUrl || '');
       formData.append('productDescription', this.currentCatlog.productOfferDescription);
       formData.append('productStatus', this.currentCatlog.productOfferStatus);
       formData.append('price', JSON.stringify(this.currentCatlog.price));

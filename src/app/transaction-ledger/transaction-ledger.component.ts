@@ -21,6 +21,7 @@ export class TransactionLedgerComponent extends Unsubscribable {
   totalPages: number = 0;
   limitOptions: number[] = [5, 10, 20, 50];
   isLoading: boolean = false;
+  creditNoteStatus: string = '';
 
   constructor(private apiRequestService: ApiRequestService) { super(); }
 
@@ -31,7 +32,8 @@ export class TransactionLedgerComponent extends Unsubscribable {
   loadTransactions(): void {
     this.isLoading = true;
 
-    const payload = { page: this.currentPage, limit: this.limit };
+    const payload: any = { page: this.currentPage, limit: this.limit };
+    if (this.creditNoteStatus) payload.creditNoteStatus = this.creditNoteStatus;
 
     this.apiRequestService.getTransactionLedger(payload).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
@@ -53,6 +55,11 @@ export class TransactionLedgerComponent extends Unsubscribable {
   }
 
   handleLimitChange(): void {
+    this.currentPage = 1;
+    this.loadTransactions();
+  }
+
+  onStatusChange(): void {
     this.currentPage = 1;
     this.loadTransactions();
   }

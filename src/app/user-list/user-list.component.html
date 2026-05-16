@@ -235,6 +235,19 @@
                 </div>       
         </div>
 
+        <!-- Reports To (Senior SE) — only for SalesExecutive accounts -->
+        <div class="row" *ngIf="currentUser.accountType === 'SalesExecutive'">
+            <div class="col-sm-6 mb-3 form-group">
+                <label class="form-label" for="parentSalesExecutive">Reports To (Senior SE)</label>
+                <select id="parentSalesExecutive" class="form-select" [(ngModel)]="currentUser.parentSalesExecutive" name="parentSalesExecutive">
+                    <option value="">None (Top-level SE)</option>
+                    <option *ngFor="let exec of salesExecutives" [value]="exec.mobile">
+                        {{ exec.name }} ({{ exec.mobile }})
+                    </option>
+                </select>
+            </div>
+        </div>
+
         <!-- Zone and District in One Row (if Dealer) -->
         <div class="row" *ngIf="currentUser.accountType === 'Dealer'">
             <div class="col-sm-6 mb-3 form-group">
@@ -414,6 +427,19 @@
     </div>       
 </div>
  
+ <!-- Reports To (Senior SE) — edit modal, only for SalesExecutive accounts -->
+ <div class="row" *ngIf="currentUser.accountType === 'SalesExecutive'">
+    <div class="col-sm-6 mb-3 form-group">
+        <label class="form-label" for="editParentSalesExecutive">Reports To (Senior SE)</label>
+        <select id="editParentSalesExecutive" class="form-select" [(ngModel)]="currentUser.parentSalesExecutive" name="editParentSalesExecutive">
+            <option value="">None (Top-level SE)</option>
+            <option *ngFor="let exec of salesExecutives" [value]="exec.mobile">
+                {{ exec.name }} ({{ exec.mobile }})
+            </option>
+        </select>
+    </div>
+ </div>
+
  <!-- Zone and District in One Row (if Dealer) -->
  <div class="row" *ngIf="currentUser.accountType === 'Dealer'">
     <div class="col-sm-6 mb-3 form-group">

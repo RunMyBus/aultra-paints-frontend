@@ -28,6 +28,20 @@
       <small *ngIf="dealersError" class="text-muted d-block mt-1">{{ dealersError }}</small>
     </div>
 
+    <div *ngIf="showSalesExecutiveFilter" style="min-width: 240px;">
+      <label class="form-label small mb-1">Sales Executive</label>
+      <input type="text"
+             class="form-control form-control-sm"
+             placeholder="Search name or mobile"
+             [(ngModel)]="salesExecutiveInput"
+             (input)="onSalesExecutiveInputChange($any($event).target.value)"
+             [ngbTypeahead]="salesExecutiveSearch"
+             [resultFormatter]="salesExecutiveFormatter"
+             [inputFormatter]="salesExecutiveFormatter"
+             (selectItem)="onSalesExecutiveSelect($event)" />
+      <small *ngIf="salesExecutivesError" class="text-muted d-block mt-1">{{ salesExecutivesError }}</small>
+    </div>
+
     <button *ngIf="hasActiveFilters()"
             class="btn btn-sm btn-link p-0 align-self-end"
             type="button"
